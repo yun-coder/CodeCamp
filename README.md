@@ -2,7 +2,7 @@
 
 个人学习项目集合 —— 汇集多个 AI、工具、平台类开源项目的学习与实验仓库。
 
-> **最后更新：** 2026-06-05 | **项目总数：** 26 个（18 个有 GitHub + 8 个本地项目）
+> **最后更新：** 2026-06-05 | **项目总数：** 26 个（17 个有 GitHub + 9 个本地项目）
 
 ---
 
@@ -34,7 +34,7 @@
 | **project-helper** | 项目学习助手：输入 GitHub 地址自动克隆、扫描、缓存并生成源码学习报告 | [yun-coder/learn-gitHub-project](https://github.com/yun-coder/learn-gitHub-project) |
 | **RuView** | 基于 WiFi CSI 信号的空间智能平台，无摄像头人体感知、呼吸心率监测 | [ruvnet/RuView](https://github.com/ruvnet/RuView) |
 | **sam-agent-tool** | 基于 Meta SAM 的分割工具，支持 CLI 和 Python SDK，输出结构化 JSON + 可视化图 | *(本地项目)* |
-| **sealPrint** | 印章打印系统，Vue 3 + Vite | [yun-coder/sealPrint](https://github.com/yun-coder/sealPrint) |
+| **sealPrint** | 印章打印系统，Vue 3 + Vite | *(本地项目)* |
 | **yao-open-prompts** | 中文 AI 提示词开源库，116+ 提示词按 9 大场景分类，含英文镜像版 | [yaojingang/yao-open-prompts](https://github.com/yaojingang/yao-open-prompts) |
 
 ---
