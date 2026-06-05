@@ -1,0 +1,7 @@
+.venv/
+.paddlex_cache/
+__pycache__/
+*.pyc
+.env
+runs/
+outputs/

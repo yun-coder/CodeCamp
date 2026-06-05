@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>visual code demo</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, shrink-to-fit=no, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+    <link rel=icon href=/favicon.ico>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="js/webUploader/webuploader.css">
+    <link rel="stylesheet" href="js/toastr/toastr.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/webUploader/webuploader.js"></script>
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/toastr/toastr.min.js"></script>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="button-group-left row">
+        <button type="button" id="edit_template" class="btn btn-primary col-xs-3" data-toggle="modal"
+                data-target="#tpModal">新建模板
+        </button>
+    </div>
+</div>
+
+<!-- Modal for tp -->
+<div class="modal fade" id="tpModal" tabindex="-1" role="dialog" aria-labelledby="tpModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="tpModalLabel">新建模板</h5>
+                <button type="button" class="close _close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form class="needs-validation">
+                    <div class="form-group row">
+                        <label for="template_name" class="col-3 col-form-label">模板名称:</label>
+                        <div class="col-9">
+                            <input type="text" class="form-control" id="template_name">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="template_name" class="col-3 col-form-label">模板类型:</label>
+                        <div class="col-9">
+                            <select id="template_type" class="form-control col-12">
+                                <option value="-1">--请选择--</option>
+                                <option value="FJ">房间</option>
+                                <option value="JG">机柜</option>
+                                <option value="QT">其他</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="tp_width" class="col-3 col-form-label">长:</label>
+                        <div class="col-8">
+                            <input type="number" class="form-control" id="tp_width" min="0">
+                        </div>
+                        px
+                    </div>
+                    <div class="form-group row">
+                        <label for="tp_height" class="col-3 col-form-label">高:</label>
+                        <div class="col-8">
+                            <input type="number" class="form-control" id="tp_height" min="0">
+                        </div>
+                        px
+                    </div>
+
+                    <div class="form-group row" id="img_form">
+                        <input type="hidden" class="form-control" name="base_map" id="base_map">
+                        <label for="base_map" class="col-3 col-form-label">底图:</label>
+                        <input type="file" id="FILE_PATH" name="FILE_PATH">
+                        <div class="col-9">
+                            <button id="upload_base" type="button"></button>
+                            <div class="upload_type"></div>
+                            <div class="img-tip">建议尺寸:1920*1080</div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-3"></div>
+                        <div class="col-9" id="fileList"></div>
+                    </div>
+                    <!--                    <div class="form-group row">-->
+                    <!--                        <label class="col-3 col-form-label">底图尺寸:</label>-->
+                    <!--                        <div class="col-9">-->
+                    <!--                            <div class="row center">-->
+                    <!--                                <div class="col-5"><input type="number" class="form-control" id="map_width" min="0">-->
+                    <!--                                </div>-->
+                    <!--                                至-->
+                    <!--                                <div class="col-5"><input type="number" class="form-control" id="map_height" min="0">-->
+                    <!--                                </div>-->
+                    <!--                            </div>-->
+                    <!--                        </div>-->
+                    <!--                    </div>-->
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary _close" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary form-submit-1">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script type="text/javascript">
+    //todo 获取传参
+    function getQuery(name) {
+        // 正则：[找寻'&' + 'url参数名字' = '值' + '&']（'&'可以不存在）
+        let reg = new RegExp("(^|&/)" + name + "=([^&]*)(&|$)");
+        let r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            // 对参数值进行解码
+            return unescape(r[2]);
+        }
+        return null;
+    }
+    //console.log(getQuery('qrcode'));
+    let map_width;
+    let map_height;
+    //todo 上传图片
+    $("#upload_base").on('click', function () {
+        $("#FILE_PATH").click();
+        $(document).off('change','#FILE_PATH').on('change','#FILE_PATH', function (e) {
+            console.log(e.target.files[0]);
+            let file = e.target.files[0];
+            let form = new FormData();
+            form.append("FILE_PATH", file);
+            $.ajax({
+                url: 'http://47.96.99.70:8080/standard-test/uploadTemplateLayoutImage.html',
+                type: 'POST',
+                cache: false,
+                data: form,
+                contentType: false,
+                processData: false,
+                dataType: 'json',
+                success: function (res) {
+                    if (res[0].Code == 200) {
+                        toastr.success("上传成功");
+                        $("input[name='base_map']").val("http://47.96.99.70:8080/standard-test/" + res[0].data);
+                        $("#upload_base").css('display', 'none');
+                        var $li = $('<div class="file-item thumbnail"><img width="100" height="100" src="http://47.96.99.70:8080/standard-test/' + res[0].data + '"><div class="img-del-btn"></div><div class="info">' + res[0].data.split('//')[3] + '</div></div>');
+                        $('#fileList').append($li);
+                        $(".img-del-btn").on('click', function () {
+                            $("#fileList").html("");
+                            $("input[name='base_map']").val("");
+                            $("#upload_base").css('display', 'flex');
+                            $("#FILE_PATH").val(null);
+                        });
+                        let Info = new Image();
+                        Info.src = "http://47.96.99.70:8080/standard-test/" + res[0].data;
+                        Info.onload = function () {
+                            map_width = Info.width;
+                            map_height = Info.height;
+                        };
+                    }
+                },
+                error: function (err) {
+                    toastr.error(err[0].msg);
+                }
+            });
+        });
+    });
+
+    let flag1, flag2, flag3;
+    //todo 判断模板唯一性
+    $("#template_name").on('blur', function () {
+        $.ajax({
+            url: 'http://47.96.99.70:8080/standard-test/checkTempletName.html',
+            dataType: 'json',
+            type: 'GET',
+            data: {'template_name': $(this).val()},
+            success: function (res) {
+                if (res[0].Code == 200) {
+                    console.log(res[0].data);
+                    $("#template_name").addClass('is-valid');
+                    flag1 = true;
+                }else{
+                    $("#template_name").addClass('is-invalid').val('模板名称已存在或为空');
+                    flag1 = false;
+                }
+            },
+            error: function (error) {
+                $("#template_name").addClass('is-invalid').attr('placeholder', '模板名称已存在或为空');
+                toastr.error(error[0].data);
+                flag1 = false;
+            }
+        });
+    });
+
+    //todo 新建模板
+    $(".form-submit-1").on('click', function () {
+        let template_name = $("#template_name").val();
+        let width = $("#tp_width").val();
+        let height = $("#tp_height").val();
+        let base_map = $("#base_map").val();
+        let template_type = $("#template_type option:selected").val();
+        //console.log(template_type);
+        if (template_type == '-1') {
+            $("#template_type").addClass('is-invalid');
+            flag2 = false;
+        } else {
+            flag2 = true;
+        }
+        if (base_map == '') {
+            flag3 = false;
+            $(".upload_type").html("<em style='color: red'>！请选择一张底图</em>");
+            $(".upload_type").css('display', 'block');
+        } else {
+            flag3 = true;
+        }
+
+        if (flag1 == true && flag2 == true && flag3 == true) {
+            // todo 新增模板数据
+            $.ajax({
+                type: "POST",
+                url: "http://47.96.99.70:8080/standard-test/AddTemplate_layout.html",
+                data: {
+                    "template_name": template_name,
+                    "template_type": template_type,
+                    "status":1,
+                    "width": width,
+                    "height": height,
+                    "base_map": base_map,
+                    "map_width": map_width,
+                    "map_height": map_height
+                },
+                async: false,   // 异步，默认开启，也就是$.ajax后面的代码是不是跟$.ajx里面的代码一起执行
+                cache: true,  // 表示浏览器是否缓存被请求页面,默认是 true
+                dataType: "json",   // 返回浏览器的数据类型，指定是json格式，前端这里才可以解析json数据
+                success: function (res) {
+                    //todo 获取template_id 去查询
+                    if (res[0].Code == 200) {
+                        toastr.success('添加成功');
+                        let template_id = res[0].data[0].template_id;
+                        $("._close").click();
+                        window.location.href = 'index.html?template_id=' + template_id;
+                    }
+                },
+                error: function () {
+                    console.log("发生错误");
+                },
+                complete: function () {
+                    console.log("done")
+                }
+            });
+        }
+
+    });
+
+    $("._close").on('click', function () {
+        $(".needs-validation input").removeClass('is-invalid').removeClass('is-valid');
+        $(".upload_type").css('display', 'none');
+        $("#saturated_min").removeAttr('disabled');
+        $("#Exceed_min").removeAttr('disabled');
+        $(".modal").css('display', 'none').removeClass('show');
+        $("#fileList").html("");
+        $("#upload_base").css('display', 'flex');
+    });
+
+</script>
+</html>

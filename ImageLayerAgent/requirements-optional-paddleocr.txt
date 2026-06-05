@@ -1,0 +1,8 @@
+# Optional PaddleOCR integration.
+# PaddleOCR 3.x exposes PaddleOCR(...).predict(path), which ImageLayerAgent
+# uses when available. Install CPU or GPU PaddlePaddle for your environment.
+#
+# GPU installs depend on your CUDA version. Use PaddlePaddle's install selector,
+# then replace the CPU paddlepaddle package below with the matching GPU build.
+paddlepaddle>=3.3.0
+paddleocr>=3.0.0

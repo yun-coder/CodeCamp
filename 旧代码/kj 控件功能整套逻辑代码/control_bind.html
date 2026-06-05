@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>控件绑定</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, shrink-to-fit=no, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+    <link rel=icon href=/favicon.ico>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="js/toastr/toastr.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/toastr/toastr.min.js"></script>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="control_box">
+        <div id="bigDiv">
+            <canvas id="canvas_box"><p>您的系统不支持此程序!</p></canvas>
+        </div>
+    </div>
+
+    <div class="nav-btn">
+        <button type="button" class="btn btn-primary col-xs-3 change-btn" id="change-btn">控件列表</button>
+        <button type="button" class="btn btn-primary col-xs-3 change-btn" id="close_win">完成</button>
+    </div>
+    <div id="mobile-menu" class="mobile-nav show-nav">
+        <ul>
+            <li class="header">
+                <button class="btn btn-primary" data-toggle="modal" id="query_connect" data-target="#controlModel">
+                    批量关联
+                </button>
+                <button class="btn btn-primary" data-toggle="modal" id="setting_volume" data-target="#volumeModel">
+                    容量设置
+                </button>
+            </li>
+            <li>
+                <table width="100%" id="code_table">
+                    <thead>
+                    <tr>
+                        <td>控件名称</td>
+                        <td class="sb_code">设备编码</td>
+                        <td class="sb_name">设备名称</td>
+                        <td class="edit">操作</td>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    <!--控件内容-->
+                    </tbody>
+                </table>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<div class="modal fade" id="chooseTemplateModel" tabindex="-1" role="dialog" aria-labelledby="chooseTemplateModelLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="chooseTemplateModelLabel">选择模板</h5>
+                <button type="button" class="close _close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form class="needs-validation">
+                    <div class="form-group row">
+                        <label for="template_id" class="col-3 col-form-label">选择模板:</label>
+                        <div class="col-9">
+                            <select id="template_id" class="form-control col-12">
+
+                            </select>
+                        </div>
+                    </div>
+                </form>
+                <div class="code_list">
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary _close" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary form-submit-0">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal for volume -->
+<div class="modal fade" id="volumeModel" tabindex="-1" role="dialog" aria-labelledby="volumeModelLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="volumeModelLabel">容量设置</h5>
+                <button type="button" class="close _close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form class="needs-validation">
+                    <div class="form-group row">
+                        <label class="col-4 col-form-label" for="system_code">选择系统:</label>
+                        <div class="col-8">
+                            <select class="form-control col-12" id="system_code">
+                                <option value="-1">--请选择--</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-4 col-form-label">空闲值区间:</label>
+                        <div class="col-8">
+                            <div class="row center">
+                                <div class="col-5"><input type="number" class="form-control" id="space_min" min="0" value="0" disabled="disabled">
+                                </div>
+                                ＜N≤
+                                <div class="col-5"><input type="number" class="form-control" id="space_max" min="0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-4 col-form-label">饱和值区间:</label>
+                        <div class="col-8">
+                            <div class="row center">
+                                <div class="col-5"><input type="number" class="form-control" id="saturated_min" min="0">
+                                </div>
+                                ＜N≤
+                                <div class="col-5"><input type="number" class="form-control" id="saturated_max" min="0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label class="col-4 col-form-label">超标值区间:</label>
+                        <div class="col-8">
+                            <div class="row center">
+                                <div class="col-5"><input type="number" class="form-control" id="Exceed_min" min="0">
+                                </div>
+                                ＜N≤
+                                <div class="col-5"><input type="number" class="form-control" id="Exceed_max" min="0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary _close" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary form-submit-2">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal for control -->
+<div class="modal fade" id="controlModel" tabindex="-1" role="dialog" aria-labelledby="controlModelLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="controlModelLabel">批量关联</h5>
+                <button type="button" class="close _close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form class="needs-validation">
+                    <div class="form-group row">
+                        <label for="equip_type" class="col-3 col-form-label">设备类型:</label>
+                        <div class="col-8">
+                            <select id="equip_type" class="form-control col-12">
+
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="equip_name" class="col-3 col-form-label">设备名称:</label>
+                        <div class="col-8">
+                            <select id="equip_name" class="form-control col-12">
+                                <option value="-1">--请选择--</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="control_position" class="col-3 col-form-label">安装位置:</label>
+                        <div class="col-8">
+                            <input type="text" class="form-control" id="control_position" value="">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="equip_code" class="col-3 col-form-label">设备编码:</label>
+                        <div class="col-8">
+                            <input type="text" class="form-control" id="equip_code" value="">
+                        </div>
+                    </div>
+                </form>
+                <div class="code_list">
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success query_qrcode">查询关联QRCODE</button>
+                <button type="button" class="btn btn-secondary _close" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary form-submit-1">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for editcontrol -->
+<div class="modal fade" id="editControlModel" tabindex="-1" role="dialog" aria-labelledby="editControlModelLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editControlModelLabel">单控件关联</h5>
+                <button type="button" class="close _close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form class="needs-validation">
+                    <div class="form-group row">
+                        <label for="equip_type" class="col-3 col-form-label">设备类型:</label>
+                        <div class="col-8">
+                            <select id="edit_equip_type" class="form-control col-12">
+
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="equip_name" class="col-3 col-form-label">设备名称:</label>
+                        <div class="col-8">
+                            <select id="edit_equip_name" class="form-control col-12">
+                                <option value="-1">--请选择--</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="control_position" class="col-3 col-form-label">安装位置:</label>
+                        <div class="col-8">
+                            <input type="text" class="form-control" id="edit_control_position" value="">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="equip_code" class="col-3 col-form-label">设备编码:</label>
+                        <div class="col-8">
+                            <input type="text" class="form-control" id="edit_equip_code" value="">
+                        </div>
+                    </div>
+                </form>
+                <div class="edit_code_list">
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success edit_query_qrcode">查询关联QRCODE</button>
+                <button type="button" class="btn btn-secondary _close" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary form-submit-3">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+<script type="text/javascript" src="js/number-precision/build/index.iife.js?time=1596531514"></script>
+<script type="text/javascript" src="js/a3.js"></script>
+<script type="text/javascript">
+    //todo 设置容量 step
+    let volume_info = {
+        template_id: '',
+        space_min: '',
+        space_max: '',
+        saturated_min: '',
+        saturated_max: '',
+        Exceed_min: '',
+        Exceed_max: '',
+        system_code: ''
+    };
+    let template_type;
+    let ids = [];
+    let qrcodes = [];
+    let one_control_id;
+    let upCode;
+    let Template_Info;
+
+    let dataArr = [];
+    let oldArr = [];
+    let no_bind_ids = [];
+    let all_controls = [];
+
+    //todo 数组正确排序
+    function compare(a,b) {
+        if(a.index > b.index){
+            return 1;
+        }else if(a.index < b.index){
+            return -1;
+        }else{
+            return 0;
+        }
+    }
+
+    //todo 获取传参
+    function getQuery(name) {
+        let query = window.location.search.substring(1);
+        let vars = query.split("&");
+        for (let i = 0; i < vars.length; i++) {
+            let pair = vars[i].split("=");
+            if (pair[0] == name) {
+                return pair[1];
+            }
+        }
+        return (false);
+    }
+
+    window.onload = function () {
+        if (isPhone()) {
+            $(".nav-btn").addClass('hide');
+        }
+        //todo 获取模板列表
+        $("#chooseTemplateModel").addClass('show').css('display', 'block');
+        $.ajax({
+            url: 'http://47.96.99.70:8080/standard-test/getAllTemplateList.html',
+            dataType: 'json',
+            type: 'GET',
+            success: function (res) {
+                if (res[0].Code == 200) {
+                    let _html = '<option value="-1">--请选择--</option>';
+                    for (let k = 0; k < res[0].tempList.length; k++) {
+                        _html += '<option value="' + res[0].tempList[k].template_id + '">' + res[0].tempList[k].template_name + '</option>';
+                    }
+                    $("#template_id").html(_html);
+                }
+            },
+            error: function (error) {
+                toastr.error(error[0].data);
+            }
+        });
+        let qrcode = getQuery('qrcode');
+        //console.log(qrcode);
+        if (qrcode) {
+            //todo 获取所属系统
+            $.ajax({
+                url: 'http://47.96.99.70:8080/standard-test/getAllSystemList.html',
+                dataType: 'json',
+                type: 'GET',
+                success: function (res) {
+                    if (res[0].Code == 200) {
+                        let _html = '<option value="-1">--请选择--</option>';
+                        for (let k = 0; k < res[0].data.length; k++) {
+                            _html += '<option value="' + res[0].data[k].sysspell + '">' + res[0].data[k].systemname + '</option>';
+                        }
+                        $("#system_code").html(_html);
+                    }
+                },
+                error: function (error) {
+                    toastr.error(error[0].data);
+                }
+            });
+            //todo 查询设备类型
+            $.ajax({
+                url: 'http://47.96.99.70:8080/standard-test/getAllAssetTypeInfoList.html',
+                dataType: 'json',
+                type: 'GET',
+                success: function (res) {
+                    if (res[0].Code == 200) {
+                        //console.log(res[0].data);
+                        let _html = '<option value="-1">--请选择--</option>';
+                        for (let k = 0; k < res[0].data.length; k++) {
+                            _html += "<option value='" + res[0].data[k].id + "'>" + res[0].data[k].typename + "</option>";
+                        }
+                        $("#equip_type").html(_html);
+                    }
+                },
+                error: function (error) {
+                    toastr.error(error[0].data);
+                }
+            });
+            //todo 查询设备名称
+            $("#equip_type").on('change', function () {
+                let equip_type = $("#equip_type option:selected").val();
+                if (equip_type == '-1') {
+                    toastr.error("请选择设备类型");
+                    $("#equip_name").html('<option value="-1">--请选择--</option>');
+                } else {
+                    $.ajax({
+                        url: 'http://47.96.99.70:8080/standard-test/getAllAssetNameInfoList.html',
+                        dataType: 'json',
+                        data: {'id': equip_type},
+                        type: 'GET',
+                        success: function (res) {
+                            if (res[0].Code == 200) {
+                                //console.log(res[0].data);
+                                let _html = '<option value="-1">--请选择--</option>';
+                                for (let k = 0; k < res[0].data.length; k++) {
+                                    _html += "<option value='" + res[0].data[k].id + "'>" + res[0].data[k].assetname + "</option>";
+                                }
+                                $("#equip_name").html(_html);
+                            }
+                        },
+                        error: function (error) {
+                            toastr.error(error[0].data);
+                        }
+                    });
+                }
+            });
+            //todo 设置设备编码
+            //$("#equip_code").val(qrcode);
+        } else {
+            toastr.error("访问方式错误，缺少必要参数");
+            return;
+        }
+    };
+
+    $("#template_id").on('blur', function () {
+        let template_id = $("#template_id option:selected").val();
+        volume_info.template_id = template_id;
+        $.ajax({
+            url: 'http://47.96.99.70:8080/standard-test/getTemplateDetailById.html',
+            dataType: 'json',
+            type: 'GET',
+            data: {'template_id': template_id},
+            async: false,
+            success: function (res) {
+                if (res[0].Code == 200) {
+                    //console.log(res[0].data);
+                    //todo 如果是房间就不显示容量设置
+                    template_type = res[0].data.template_type;
+                    //template_type = 'JG';
+                    if (template_type == 'FJ') {
+                        $("#setting_volume").addClass('hide');
+                    }
+                    Template_Info = res[0].data;
+                    if (res[0].data.detailList.length > 0) {
+                        for (let k = 0; k < res[0].data.detailList.length; k++) {
+                            ids.push({'control_name':res[0].data.detailList[k].control_name,'index':parseInt(res[0].data.detailList[k].control_name.split('node')[1])});
+                        }
+                    } else {
+                        $("#change-btn").css('display', 'none');
+                    }
+                    //console.log(template_type);
+                }
+            },
+            error: function (error) {
+                toastr.error(error[0].data);
+            }
+        });
+    });
+
+    //todo 选择模板显示
+    $(".form-submit-0").on('click', function () {
+        $("._close").click();
+        load_template();
+        //console.log(ids);
+        if (ids.length > 0) {
+            Add_Controls(Template_Info.detailList);
+        } else {
+            toastr.error("该模板没有添加相关控件");
+        }
+    });
+
+    //todo 编辑控件
+    function edit_control(id) {
+        //toastr.info("暂未开放");
+        console.log(id);
+        one_control_id = id;
+        //todo 查询设备类型
+        $.ajax({
+            url: 'http://47.96.99.70:8080/standard-test/getAllAssetTypeInfoList.html',
+            dataType: 'json',
+            type: 'GET',
+            success: function (res) {
+                if (res[0].Code == 200) {
+                    //console.log(res[0].data);
+                    let _html = '<option value="-1">--请选择--</option>';
+                    for (let k = 0; k < res[0].data.length; k++) {
+                        _html += "<option value='" + res[0].data[k].id + "'>" + res[0].data[k].typename + "</option>";
+                    }
+                    $("#edit_equip_type").html(_html);
+                }
+            },
+            error: function (error) {
+                toastr.error(error[0].data);
+            }
+        });
+        //todo 查询设备名称
+        $("#edit_equip_type").on('change', function () {
+            let equip_type = $("#edit_equip_type option:selected").val();
+            if (equip_type == '-1') {
+                toastr.error("请选择设备类型");
+                $("#edit_equip_name").html('<option value="-1">--请选择--</option>');
+            } else {
+                $.ajax({
+                    url: 'http://47.96.99.70:8080/standard-test/getAllAssetNameInfoList.html',
+                    dataType: 'json',
+                    data: {'id': equip_type},
+                    type: 'GET',
+                    success: function (res) {
+                        if (res[0].Code == 200) {
+                            //console.log(res[0].data);
+                            let _html = '<option value="-1">--请选择--</option>';
+                            for (let k = 0; k < res[0].data.length; k++) {
+                                _html += "<option value='" + res[0].data[k].id + "'>" + res[0].data[k].assetname + "</option>";
+                            }
+                            $("#edit_equip_name").html(_html);
+                        }
+                    },
+                    error: function (error) {
+                        toastr.error(error[0].data);
+                    }
+                });
+            }
+        });
+        //todo 获取模板列表
+        $.ajax({
+            url: 'http://47.96.99.70:8080/standard-test/getAllTemplateList.html',
+            dataType: 'json',
+            type: 'GET',
+            success: function (res) {
+                if (res[0].Code == 200) {
+                    let _html = '<option value="-1">--请选择--</option>';
+                    for (let k = 0; k < res[0].tempList.length; k++) {
+                        _html += '<option value="' + res[0].tempList[k].template_id + '">' + res[0].tempList[k].template_name + '</option>';
+                    }
+                    $("#edit_template_id").html(_html);
+                }
+            },
+            error: function (error) {
+                toastr.error(error[0].data);
+            }
+        });
+        //todo 设置设备编码
+        //$("#edit_equip_code").val(getQuery('qrcode'));
+    }
+
+    //todo 打开控件列表
+    $("#change-btn").on('click', function () {
+        let menu = $("#mobile-menu");
+        if (menu.hasClass("show-nav")) {
+            setTimeout(function () {
+                menu.addClass("hide-nav").removeClass("show-nav");
+            }, 100);
+            document.getElementById('change-btn').innerHTML = "关闭";
+        } else {
+            document.getElementById('change-btn').innerHTML = "控件列表";
+            setTimeout(function () {
+                menu.addClass("show-nav").removeClass("hide-nav");
+            }, 100)
+        }
+    });
+
+
+    //todo FJ 模板保存
+    $(".form-submit-1").on('click', function () {
+        qrcodes = [];
+        $(".code_list input:checkbox:checked").each(function (index, item) {
+            qrcodes.push($(this).attr('data-code'));
+        });
+        //console.log(ids.length, qrcodes.length);
+
+        if (qrcodes.length > ids.length) {
+            toastr.error("请选择小于控件数量的编码");
+            return;
+        } else {
+            ids.sort(compare);
+            //console.log(ids);
+            qrcodes.sort();
+
+            if (oldArr.length > 0) {
+                if (oldArr.length == Template_Info.detailList.length) {
+                    toastr.error("已无剩余控件需要绑定");
+                    return;
+                }
+                let new_data = [];
+                for (let k = 0; k < no_bind_ids.length; k++) {
+                    new_data.push({'control_name': no_bind_ids[k]});
+                }
+                let hasrepeat = false;
+                for (let k = 0; k < oldArr.length; k++) {
+                    for (let i = 0; i < qrcodes.length; i++) {
+                        if(qrcodes[i] == oldArr[k].qrcode){
+                            hasrepeat = true;
+                        }
+                    }
+                }
+                if(hasrepeat == true){
+                    toastr.error("选择编码重复，请重新选择");
+                    return;
+                }
+                if (no_bind_ids.length < qrcodes.length) {
+                    toastr.error("已超出剩余可绑定控件数量");
+                    return;
+                }
+                for (let i = 0; i < qrcodes.length; i++) {
+                    new_data[i].qrcode = qrcodes[i];
+                }
+                //console.log(new_data);
+                dataArr = oldArr.concat(new_data);
+            } else {
+                for (let k = 0; k < ids.length; k++) {
+                    dataArr.push({'control_name': ids[k].control_name});
+                }
+                for (let i = 0; i < qrcodes.length; i++) {
+                    dataArr[i].qrcode = qrcodes[i];
+                }
+            }
+        }
+        console.log(dataArr);
+        $.ajax({
+            type: "POST",
+            url: "http://47.96.99.70:8080/standard-test/AddCapacityContentDetailUpgradedVersion.html",
+            data: {
+                "template_id": volume_info.template_id,
+                "qrcode": getQuery('qrcode'), //todo 从路径获取
+                "system_code": volume_info.system_code,
+                "Mould_Size": qrcodes.length, //todo 该模板内控件总数
+                "space_min": 0,
+                "space_max": 0,
+                "saturated_min": 0,
+                "saturated_max": 0,
+                "Exceed_min": 0,
+                "Exceed_max": 0,
+                "jsonString": JSON.stringify(dataArr)
+            },
+            async: false,
+            cache: true,
+            dataType: "json",
+            success: function (res) {
+                if (res[0].Code == 200) {
+                    toastr.success(res[0].data);
+                    $("._close").click();
+                    $.ajax({
+                        url: 'http://47.96.99.70:8080/standard-test/getTemplateDetailByMouldCode.html',
+                        dataType: 'json',
+                        data: {'qrcode': getQuery('qrcode')},
+                        type: 'GET',
+                        success: function (res) {
+                            if (res[0].Code == 200) {
+                                Template_Info = res[0].data;
+                                load_template();
+                                Refresh_List(Template_Info.detailList);
+                                upCode = res[0].data.upCode;
+                                no_bind_ids = [];
+                                oldArr = [];
+                                for (let k = 0; k < res[0].data.detailList.length; k++) {
+                                    if (res[0].data.detailList[k].qrCode == "") {
+                                        no_bind_ids.push(res[0].data.detailList[k].control_name);
+                                    } else {
+                                        oldArr.push({
+                                            'control_name': res[0].data.detailList[k].control_name,
+                                            'qrcode': res[0].data.detailList[k].qrCode
+                                        });
+                                    }
+                                }
+                            }
+                        },
+                        error: function (error) {
+                            toastr.error(error[0].data);
+                        }
+                    });
+                } else {
+                    toastr.error(res[0].data);
+                    $("._close").click();
+                }
+            },
+            error: function (error) {
+                toastr.error(error[0].data);
+            },
+            complete: function () {
+                console.log("done")
+            }
+        });
+    });
+
+    //todo 单个控件的关联操作 内部的qrcode为内部变量
+    $(".form-submit-3").on('click', function () {
+        if (!upCode) {
+            toastr.error("请先批量关联");
+            $("._close").click();
+        }
+        let qrcodes = [];
+        $(".edit_code_list input:checkbox:checked").each(function (index, item) {
+            qrcodes.push($(this).attr('data-code'));
+        });
+        if (qrcodes.length > 1) {
+            toastr.error("单控件只能选择一个编码");
+            return;
+        }
+        if (qrcodes.length < 1) {
+            toastr.error("请选择一个编码");
+            return;
+        }
+        $.ajax({
+            type: "POST",
+            url: "http://47.96.99.70:8080//standard-test/AssociateControl.html",
+            data: {
+                "QrCode": qrcodes[0],
+                "upCode": upCode,
+                "control_name": one_control_id,
+            },
+            cache: true,
+            dataType: "json",
+            success: function (res) {
+                toastr.success(res[0].data);
+                $("._close").click();
+                $.ajax({
+                    url: 'http://47.96.99.70:8080/standard-test/getTemplateDetailByMouldCode.html',
+                    dataType: 'json',
+                    data: {'qrcode': getQuery('qrcode')},
+                    type: 'GET',
+                    success: function (res) {
+                        if (res[0].Code == 200) {
+                            Template_Info = res[0].data;
+                            Refresh_List(Template_Info.detailList);
+                            no_bind_ids = [];
+                            oldArr = [];
+                            all_controls = [];
+                            for (let k = 0; k < res[0].data.detailList.length; k++) {
+                                all_controls.push({
+                                    'control_name': res[0].data.detailList[k].control_name,
+                                    'qrcode': res[0].data.detailList[k].qrCode
+                                });
+                                if (res[0].data.detailList[k].qrCode == "") {
+                                    no_bind_ids.push(res[0].data.detailList[k].control_name);
+                                } else {
+                                    oldArr.push({
+                                        'control_name': res[0].data.detailList[k].control_name,
+                                        'qrcode': res[0].data.detailList[k].qrCode
+                                    });
+                                }
+                            }
+                        }
+                    },
+                    error: function (error) {
+                        toastr.error(error[0].data);
+                    }
+                });
+            },
+            error: function () {
+                console.log("发生错误");
+            },
+            complete: function () {
+                console.log("done")
+            }
+        });
+    });
+
+    //todo QT JG 模板保存
+    $(".form-submit-2").on('click', function () {
+        if (JSON.stringify(dataArr) == '[]') {
+            toastr.error("请先进行控件关联");
+            return;
+        }
+        let flag1, flag2, flag3, flag4, flag5, flag6, flag7;
+        let space_min = parseInt($("#space_min").val());
+        let space_max = parseInt($("#space_max").val());
+        let saturated_min = parseInt($("#saturated_min").val());
+        let saturated_max = parseInt($("#saturated_max").val());
+        let Exceed_min = parseInt($("#Exceed_min").val());
+        let Exceed_max = parseInt($("#Exceed_max").val());
+        let system_code = $("#system_code option:selected").val();
+        if (system_code == '-1') {
+            flag7 = false;
+            $("#system_code").addClass('is-invalid')
+        } else {
+            flag7 = true;
+            volume_info.system_code = system_code;
+            $("#system_code").addClass('is-valid');
+        }
+        if (space_min == '') {
+            flag1 = false;
+            $("#space_min").addClass('is-invalid').attr('placeholder', '必填项');
+        } else {
+            flag1 = true;
+            volume_info.space_min = space_min;
+            $("#space_min").addClass('is-valid');
+        }
+        if (space_max == '') {
+            flag2 = false;
+            $("#space_max").addClass('is-invalid').attr('placeholder', '必填项');
+        } else {
+            flag2 = true;
+            volume_info.space_max = space_max;
+            $("#space_max").addClass('is-valid');
+        }
+        if (saturated_min == '') {
+            flag3 = false;
+            $("#saturated_min").addClass('is-invalid').attr('placeholder', '必填项');
+        } else {
+            flag3 = true;
+            volume_info.saturated_min = saturated_min;
+            $("#saturated_min").addClass('is-valid');
+        }
+        if (saturated_max == '') {
+            flag4 = false;
+            $("#saturated_max").addClass('is-invalid').attr('placeholder', '必填项');
+        } else {
+            flag4 = true;
+            volume_info.saturated_max = saturated_max;
+            $("#saturated_max").addClass('is-valid');
+        }
+        if (Exceed_min == '') {
+            flag5 = false;
+            $("#Exceed_min").addClass('is-invalid').attr('placeholder', '必填项');
+        } else {
+            flag5 = true;
+            volume_info.Exceed_min = Exceed_min;
+            $("#Exceed_min").addClass('is-valid');
+        }
+        if (Exceed_max == '') {
+            flag6 = false;
+            $("#Exceed_max").addClass('is-invalid').attr('placeholder', '必填项');
+        } else {
+            if (Exceed_max <= Exceed_min) {
+                $("#Exceed_max").addClass('is-invalid');
+                toastr.warning('必须大于起始值');
+            } else {
+                flag6 = true;
+                volume_info.Exceed_max = Exceed_max;
+                $("#Exceed_max").addClass('is-valid');
+            }
+        }
+
+        if (flag1 && flag2 && flag3 && flag4 && flag5 && flag6 && flag7) {
+            if(JSON.stringify(all_controls) != '[]'){
+                dataArr = all_controls;
+            }
+            $.ajax({
+                type: "POST",
+                url: "http://47.96.99.70:8080/standard-test/AddCapacityContentDetailUpgradedVersion.html",
+                data: {
+                    "template_id": volume_info.template_id,
+                    "qrcode": getQuery('qrcode'), //todo 从路径获取
+                    "system_code": volume_info.system_code,
+                    "Mould_Size": ids.length, //todo 该模板内控件总数
+                    "space_min": volume_info.space_min,
+                    "space_max": volume_info.space_max,
+                    "saturated_min": volume_info.saturated_min,
+                    "saturated_max": volume_info.saturated_max,
+                    "Exceed_min": volume_info.Exceed_min,
+                    "Exceed_max": volume_info.Exceed_max,
+                    "jsonString": JSON.stringify(dataArr)
+                },
+                async: false,
+                cache: true,
+                dataType: "json",
+                success: function (res) {
+                    toastr.success(res[0].data);
+                    $("._close").click();
+                },
+                error: function () {
+                    console.log("发生错误");
+                },
+                complete: function () {
+                    console.log("done")
+                }
+            });
+        }
+    });
+
+    //todo 根据设备类型、设备名称、安装位置模糊查询Qrcode清单
+    $(".query_qrcode").on('click', function () {
+        let template_id = $("#template_id option:selected").val();
+        volume_info.template_id = template_id;
+
+        let equip_name = $("#equip_name option:selected").val();
+        let equip_type = $("#equip_type option:selected").val();
+        let control_position = $("#control_position").val();
+        let equip_code = $("#equip_code").val();
+
+        if (template_id == '-1') {
+            $("#template_id").addClass('is-invalid')
+        } else {
+            $("#template_id").addClass('is-valid');
+        }
+        if (equip_name == '-1') {
+            $("#equip_name").addClass('is-invalid').attr('placeholder', '请输入设备名称');
+        } else {
+            $("#equip_name").addClass('is-valid');
+        }
+        if (equip_type == '-1') {
+            $("#equip_type").addClass('is-invalid').attr('placeholder', '请输入设备名称');
+        } else {
+            $("#equip_type").addClass('is-valid');
+        }
+        $.ajax({
+            url: 'http://47.96.99.70:8080/standard-test/getQrcodeCheckList.html',
+            dataType: 'json',
+            data: {
+                'newTypeID': equip_type,
+                'newNameID': equip_name,
+                'newPosition': control_position,
+                'newQrCode': equip_code,
+                'pageBegin': 0,
+                'pageEnd': 1000
+            },
+            type: 'GET',
+            success: function (res) {
+                if (res[0].Code == 200) {
+                    //console.log(res[0].data);
+                    let _html = "";
+                    for (let k = 0; k < res[0].data.length; k++) {
+                        _html += '<div class="row set-code"><span>' + res[0].data[k].QrCode + '</span><input type="checkbox" data-code="' + res[0].data[k].QrCode + '"></div>';
+                    }
+                    $(".code_list").html(_html);
+                }
+            },
+            error: function (error) {
+                toastr.error(error[0].data);
+            }
+        });
+    });
+
+    //todo 根据设备类型、设备名称、安装位置模糊查询Qrcode清单 (针对单个控件)
+    $(".edit_query_qrcode").on('click', function () {
+        let template_id = $("#edit_template_id option:selected").val();
+        let equip_name = $("#edit_equip_name option:selected").val();
+        let equip_type = $("#edit_equip_type option:selected").val();
+        let control_position = $("#edit_control_position").val();
+        let equip_code = $("#edit_equip_code").val();
+
+        if (template_id == '-1') {
+            $("#edit_template_id").addClass('is-invalid')
+        } else {
+            $("#edit_template_id").addClass('is-valid');
+        }
+        if (equip_name == '-1') {
+            $("#edit_equip_name").addClass('is-invalid').attr('placeholder', '请输入设备名称');
+        } else {
+            $("#edit_equip_name").addClass('is-valid');
+        }
+        if (equip_type == '-1') {
+            $("#edit_equip_type").addClass('is-invalid').attr('placeholder', '请输入设备名称');
+        } else {
+            $("#edit_equip_type").addClass('is-valid');
+        }
+        $.ajax({
+            url: 'http://47.96.99.70:8080/standard-test/getQrcodeCheckList.html',
+            dataType: 'json',
+            data: {
+                'newTypeID': equip_type,
+                'newNameID': equip_name,
+                'newPosition': control_position,
+                'newQrCode': equip_code,
+                'pageBegin': 0,
+                'pageEnd': 1000
+            },
+            type: 'GET',
+            success: function (res) {
+                if (res[0].Code == 200) {
+                    //console.log(res[0].data);
+                    let _html = "";
+                    for (let k = 0; k < res[0].data.length; k++) {
+                        _html += '<div class="row set-code"><span>' + res[0].data[k].QrCode + '</span><input type="checkbox" data-code="' + res[0].data[k].QrCode + '"></div>';
+                    }
+                    $(".edit_code_list").html(_html);
+                }
+            },
+            error: function (error) {
+                toastr.error(error[0].data);
+            }
+        });
+    });
+
+    $("._close").on('click', function () {
+        $(".needs-validation input").removeClass('is-invalid').removeClass('is-valid');
+        $("#saturated_min").removeAttr('disabled');
+        $("#Exceed_min").removeAttr('disabled');
+        $(".modal").css('display', 'none').removeClass('show');
+    });
+
+    //todo 设置容量区间需要验证
+    $("#space_max").on('blur', function () {
+        let num = $(this).val();
+        //console.log(num);
+        let min_num = $("#space_min").val();
+        if (parseInt(num) < parseInt(min_num)) {
+            toastr.warning('请输入大于初始值的数字');
+        } else {
+            $("#saturated_min").attr('disabled', 'disabled');
+            $("#saturated_min").val(parseInt(num) + 1);
+        }
+    });
+
+    $("#saturated_max").on('blur', function () {
+        let num = $(this).val();
+        //console.log(num);
+        let min_num = $("#saturated_min").val();
+        if (parseInt(num) < parseInt(min_num)) {
+            toastr.warning('请输入大于初始值的数字');
+        } else {
+            $("#Exceed_min").attr('disabled', 'disabled');
+            $("#Exceed_min").val(parseInt(num) + 1);
+        }
+    });
+
+    $("#edit_template").on('click', function () {
+        $("input").val("");
+        $("#fileList").html("");
+        $("#template_type").val("-1");
+    });
+
+    $(".edit").on('click', function () {
+        $("input").val("");
+    });
+</script>
+</html>

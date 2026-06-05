@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>控件显示</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, shrink-to-fit=no, minimum-scale=1.0, maximum-scale=3.0, user-scalable=0"/>
+    <link rel=icon href=/favicon.ico>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="js/toastr/toastr.min.css">
+    <link rel="stylesheet" href="css/style.css?time=1597989420">
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/toastr/toastr.min.js"></script>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="control_box">
+        <div id="bigDiv">
+            <canvas id="canvas_box"><p>您的系统不支持此程序!</p></canvas>
+        </div>
+    </div>
+</div>
+<!-- Modal for controlInfo -->
+<div class="modal fade" id="controlInfoModel" tabindex="-1" role="dialog" aria-labelledby="controlInfoModelLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="controlInfoModelLabel">设备详情</h5>
+                <button type="button" class="close _close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <span id="control_info"></span>
+                <div id="btn1">设备信息</div>
+                <div id="btn2">售后信息</div>
+                <div id="btn3">链路查询</div>
+                <div id="btn4">容量管理</div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script type="text/javascript" src="js/number-precision/build/index.iife.js?time=1597987787"></script>
+<script type="text/javascript" src="js/a4.js?time=1598404551"></script>
+<script type="text/javascript">
+    //todo 设置容量 step
+    let Template_Info;
+
+    //todo 获取传参
+    function getQuery(name) {
+        let query = window.location.search.substring(1);
+        let vars = query.split("&");
+        for (let i = 0; i < vars.length; i++) {
+            let pair = vars[i].split("=");
+            if (pair[0] == name) {
+                return pair[1];
+            }
+        }
+        return (false);
+    }
+
+    window.onload = function () {
+        let qrcode = getQuery('qrcode');
+        //console.log(qrcode);
+        if (qrcode) {
+            $.ajax({
+                url: 'http://47.96.99.70:8080/standard-test/getTemplateDetailByMouldCode.html',
+                dataType: 'json',
+                data: {'qrcode': qrcode},
+                type: 'GET',
+                success: function (res) {
+                    if (res[0].Code == 200) {
+                        Template_Info = res[0].data;
+                        if(isPhone()){
+                            mobile_load_template();
+                        }else{
+                            load_template();
+                        }
+                        if (Template_Info.detailList[0].control_name == "") {
+                            toastr.error("该模板没有添加任何控件，无法显示");
+                        } else {
+                            Add_Controls(Template_Info.detailList);
+                        }
+                        upCode = res[0].data.upCode;
+                    }
+                },
+                error: function (error) {
+                    toastr.error(error[0].data);
+                }
+            });
+        }
+    };
+
+    $("._close").on('click', function () {
+        $(".modal").css('display', 'none').removeClass('show');
+    });
+</script>
+</html>

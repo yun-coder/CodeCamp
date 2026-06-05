@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>visual code demo</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, shrink-to-fit=no, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+    <link rel=icon href=/favicon.ico>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="js/webUploader/webuploader.css">
+    <link rel="stylesheet" href="js/toastr/toastr.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/webUploader/webuploader.js"></script>
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/toastr/toastr.min.js"></script>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="control_box">
+        <div id="bigDiv">
+            <canvas id="canvas_box"><p>您的系统不支持此程序!</p></canvas>
+        </div>
+    </div>
+    <div class="circle_control" id="move_box"></div>
+    <div class="square_control" id="move_box2"></div>
+
+    <div class="button-group row">
+        <button type="button" id="short_save" class="btn btn-primary col-xs-3">临时保存</button>
+        <button type="button" id="long_save" class="btn btn-primary col-xs-3">永久保存</button>
+        <button type="button" id="save_as" class="btn btn-primary col-xs-3" data-toggle="modal"
+                data-target="#NewNameModel">另存为
+        </button>
+    </div>
+
+    <div class="nav-btn">
+        <button type="button" class="btn btn-primary col-xs-3 change-btn" id="change-btn">控件列表</button>
+    </div>
+    <div id="mobile-menu" class="mobile-nav show-nav">
+        <ul>
+            <li>
+                <table width="100%" id="code_table">
+                    <thead>
+                    <tr>
+                        <td>控件名称</td>
+                        <td class="edit">操作</td>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    <!--控件内容-->
+                    </tbody>
+                </table>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<div class="modal fade" id="NewNameModel" tabindex="-1" role="dialog" aria-labelledby="NewNameModelLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="volumeModelLabel">新模板名称</h5>
+                <button type="button" class="close _close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form class="needs-validation">
+                    <div class="form-group row">
+                        <label class="col-4 col-form-label" for="template_name">模板名称:</label>
+                        <div class="col-8">
+                            <input class="form-control col-12" id="template_name">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary _close" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary form-submit-1">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+<script type="text/javascript" src="js/number-precision/build/index.iife.js?time=1596531514"></script>
+<script type="text/javascript" src="js/a2.js?time=1596531514"></script>
+<script type="text/javascript">
+    //todo 获取传参
+    function getQuery(name) {
+        let query = window.location.search.substring(1);
+        let vars = query.split("&");
+        for (let i = 0; i < vars.length; i++) {
+            let pair = vars[i].split("=");
+            if (pair[0] == name) {
+                return pair[1];
+            }
+        }
+        return (false);
+    }
+
+    //todo 打开控件列表
+    $("#change-btn").on('click', function () {
+        let menu = $("#mobile-menu");
+        if (menu.hasClass("show-nav")) {
+            setTimeout(function () {
+                menu.addClass("hide-nav").removeClass("show-nav");
+            }, 100);
+            document.getElementById('change-btn').innerHTML = "关闭";
+        } else {
+            document.getElementById('change-btn').innerHTML = "控件列表";
+            setTimeout(function () {
+                menu.addClass("show-nav").removeClass("hide-nav");
+            }, 100)
+        }
+    });
+
+    //todo 判断模板唯一性
+    $("#template_name").on('blur', function () {
+        $.ajax({
+            url: 'http://47.96.99.70:8080/standard-test/checkTempletName.html',
+            dataType: 'json',
+            type: 'GET',
+            data: {'template_name': $(this).val()},
+            success: function (res) {
+                if (res[0].Code == 200) {
+                    $("#template_name").addClass('is-valid');
+                }
+            },
+            error: function (error) {
+                $("#template_name").addClass('is-invalid').attr('placeholder', '模板名称已存在或为空');
+                toastr.error(error[0].data);
+            }
+        });
+    });
+
+    //todo 新建模板
+    $(".form-submit-1").on('click', function () {
+        let template_name = $("#template_name").val();
+        let flag;
+        if (template_name == '') {
+            $("#template_name").addClass('is-invalid');
+            flag = false;
+        } else {
+            $("#template_name").addClass('is-valid');
+            flag = true;
+        }
+        if (flag == true) {
+            $.ajax({
+                url: 'http://47.96.99.70:8080/standard-test/insertDataFromOldTemplateLayout.html',
+                dataType: 'json',
+                data: {
+                    'template_id': Template_Info.template_id.toString(),
+                    'template_name': template_name,
+                    'status': "3"
+                },
+                type: 'POST',
+                success: function (res) {
+                    if (res.Code == 200) {
+                        console.log(res.data);
+                        $("._close").click();
+                    }
+                },
+                error: function (error) {
+                    toastr.error(error[0].data);
+                }
+            });
+        }
+    });
+</script>
+</html>

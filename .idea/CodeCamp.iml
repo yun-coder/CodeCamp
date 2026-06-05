@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="PYTHON_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/Horizon/.idea" />
+      <excludeFolder url="file://$MODULE_DIR$/Horizon/.uv-cache/interpreter-v4" />
+      <excludeFolder url="file://$MODULE_DIR$/Horizon/.uv-cache/sdists-v9" />
+      <excludeFolder url="file://$MODULE_DIR$/Horizon/.venv" />
+      <excludeFolder url="file://$MODULE_DIR$/ImageLayerAgent/.paddlex_cache" />
+      <excludeFolder url="file://$MODULE_DIR$/ImageLayerAgent/.venv" />
+      <excludeFolder url="file://$MODULE_DIR$/ImageLayerAgent/runs" />
+      <excludeFolder url="file://$MODULE_DIR$/MoneyPrinterTurbo/.idea" />
+      <excludeFolder url="file://$MODULE_DIR$/MoneyPrinterTurbo/storage" />
+      <excludeFolder url="file://$MODULE_DIR$/hello-agents/.idea" />
+      <excludeFolder url="file://$MODULE_DIR$/langfuse/.idea" />
+      <excludeFolder url="file://$MODULE_DIR$/langfuse/.turbo" />
+      <excludeFolder url="file://$MODULE_DIR$/langfuse/packages/shared/.turbo" />
+      <excludeFolder url="file://$MODULE_DIR$/one-click/target" />
+      <excludeFolder url="file://$MODULE_DIR$/poly-studio/.idea" />
+      <excludeFolder url="file://$MODULE_DIR$/poly-studio/backend/logs" />
+      <excludeFolder url="file://$MODULE_DIR$/poly-studio/backend/storage" />
+      <excludeFolder url="file://$MODULE_DIR$/project-helper/backend/.venv" />
+      <excludeFolder url="file://$MODULE_DIR$/project-helper/backend/runtime-data" />
+      <excludeFolder url="file://$MODULE_DIR$/project-helper/runtime-data" />
+      <excludeFolder url="file://$MODULE_DIR$/sam-agent-tool/.idea" />
+      <excludeFolder url="file://$MODULE_DIR$/sam-agent-tool/outputs" />
+      <excludeFolder url="file://$MODULE_DIR$/sam-agent-tool/sam_agent_tool.egg-info" />
+      <excludeFolder url="file://$MODULE_DIR$/sam-agent-tool/test_out" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+  <component name="PyDocumentationSettings">
+    <option name="format" value="PLAIN" />
+    <option name="myDocStringFormat" value="Plain" />
+  </component>
+  <component name="TemplatesService">
+    <option name="TEMPLATE_CONFIGURATION" value="Jinja2" />
+    <option name="TEMPLATE_FOLDERS">
+      <list>
+        <option value="$MODULE_DIR$/awesome-ai-apps/advance_ai_agents/finance_service_agent/templates" />
+      </list>
+    </option>
+  </component>
+  <component name="TestRunnerService">
+    <option name="PROJECT_TEST_RUNNER" value="py.test" />
+  </component>
+</module>

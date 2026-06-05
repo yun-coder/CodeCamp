@@ -1,0 +1,733 @@
+@charset "utf-8";
+* {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    overscroll-behavior: contain;
+}
+
+body {
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+.container-fluid {
+    padding: 0 !important;
+    background: #cccccc;
+}
+
+canvas {
+    display: block;
+}
+
+.modal-dialog {
+    margin: 6rem auto !important;
+}
+
+.row.center {
+    align-items: center;
+}
+
+.container-fluid {
+    position: relative;
+    height: 100%;
+}
+
+#img_form input[type="file"] {
+    display: none;
+}
+
+#upload_base {
+    display: flex;
+    width: 100px;
+    height: 100px;
+    border: 1px solid #cccccc;
+    background-image: url("../img/uploads.png");
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+#upload_base:focus {
+    outline: none !important;
+}
+
+#fileList > div {
+    width: 100px;
+    display: inline-block;
+    margin: 10px 0;
+}
+
+.file-item {
+    background: rgba(0, 0, 0, 0.6) !important;
+}
+
+.file-item .info {
+    color: white !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.img-del-btn {
+    width: 24px;
+    height: 24px;
+    display: inline;
+    float: right;
+    text-indent: -9999px;
+    overflow: hidden;
+    margin: 2px 1px 1px;
+    cursor: pointer;
+    background: url("../img/img-del.png") no-repeat -48px -24px;
+}
+
+
+/**兼容iphone5**/
+@media (device-height: 568px) and (-webkit-min-device-pixel-ratio: 2) {
+    #short_save {
+        display: none !important;
+    }
+
+    #long_save {
+        display: none !important;
+    }
+
+    #save_as {
+        display: none !important;
+    }
+
+    #move_box, #move_box2 {
+        display: none !important;
+    }
+
+    .nav-btn {
+        display: none !important;
+    }
+}
+
+/*兼容iphone6，iphone7，iphone8s*/
+@media (device-height: 667px) and (-webkit-min-device-pixel-ratio: 2) {
+    #short_save {
+        display: none !important;
+    }
+
+    #long_save {
+        display: none !important;
+    }
+
+    #save_as {
+        display: none !important;
+    }
+
+    #move_box, #move_box2 {
+        display: none !important;
+    }
+
+    .nav-btn {
+        display: none !important;
+    }
+}
+
+/*兼容iphone6 Plus,iphone7 Plus,iphone8 Plus*/
+@media (device-height: 736px) and (-webkit-min-device-pixel-ratio: 2) {
+    #short_save {
+        display: none !important;
+    }
+
+    #long_save {
+        display: none !important;
+    }
+
+    #save_as {
+        display: none !important;
+    }
+
+    #move_box, #move_box2 {
+        display: none !important;
+    }
+
+    .nav-btn {
+        display: none !important;
+    }
+}
+
+/*兼容iphoneX*/
+@media only screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) {
+    #short_save {
+        display: none !important;
+    }
+
+    #long_save {
+        display: none !important;
+    }
+
+    #save_as {
+        display: none !important;
+    }
+
+    #move_box, #move_box2 {
+        display: none !important;
+    }
+
+    .nav-btn {
+        display: none !important;
+    }
+}
+
+/*兼容ipad横屏*/
+@media only screen and (min-device-width: 768px) and (max-device-width: 1024px) and (orientation: landscape) {
+    #short_save {
+        display: none !important;
+    }
+
+    #long_save {
+        display: none !important;
+    }
+
+    #save_as {
+        display: none !important;
+    }
+
+    #move_box, #move_box2 {
+        display: none !important;
+    }
+
+    .nav-btn {
+        display: none !important;
+    }
+}
+
+/*兼容ipad竖屏*/
+@media only screen and (min-device-width: 768px) and (max-device-width: 1024px) and (orientation: portrait) {
+    #short_save {
+        display: none !important;
+    }
+
+    #long_save {
+        display: none !important;
+    }
+
+    #save_as {
+        display: none !important;
+    }
+
+    #move_box, #move_box2 {
+        display: none !important;
+    }
+
+    .nav-btn {
+        display: none !important;
+    }
+}
+
+
+.button-group {
+    position: absolute;
+    top: 1rem;
+    right: 2rem;
+}
+
+.button-group button {
+    margin-right: .5rem;
+    background-image: url("/img/pic/save.png");
+    background-repeat: no-repeat;
+    background-position: 4%;
+    background-size: 16%;
+    padding-left: 30px;
+}
+
+.button-group-left {
+    position: absolute;
+    top: 1rem;
+    left: 2rem;
+}
+
+.button-group-left button {
+    margin-right: .5rem;
+}
+
+#move_box, #move_box2 {
+    cursor: move !important;
+}
+
+.tooltips {
+    position: absolute;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    width: 8rem;
+    height: 40px;
+    font-size: .8rem;
+    background: #007BFF;
+}
+
+.tooltips .arrow {
+    content: ' ';
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 12px solid #007BFF;
+    position: relative;
+    bottom: -1.5rem;
+    left: -40%;
+}
+
+.no-radius {
+    border-radius: 0 !important;
+}
+
+.nodes {
+    display: flex;
+    background-color: #007BFF;
+    border-radius: 50%;
+    transform: translateZ(0);
+    cursor: pointer;
+    position: absolute;
+    -webkit-animation-name: breathe;
+    -webkit-animation-duration: 2700ms;
+    -webkit-animation-timing-function: ease-in-out;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-direction: alternate;
+    /* IE10、Firefox and Opera，IE9以及更早的版本不支持 */
+    animation-name: breathe; /* 动画名称 */
+    animation-duration: 2700ms; /* 动画时长3秒 */
+    animation-timing-function: ease-in-out; /* 动画速度曲线：以低速开始和结束 */
+    animation-iteration-count: infinite; /* 播放次数：无限 */
+    animation-direction: alternate;
+}
+
+.nodes_white {
+    display: flex;
+    background-color: rgba(0, 0, 0, 0);
+    cursor: pointer;
+    position: absolute;
+}
+.nodes_white_circle {
+    display: flex;
+    background-color: rgba(0, 0, 0, 0);
+    cursor: pointer;
+    position: absolute;
+    border-radius: 50%;
+}
+.nodes_green {
+    display: flex;
+    background-color: rgb(0,153,51);
+    cursor: pointer;
+    position: absolute;
+}
+.nodes_green_circle{
+    display: flex;
+    background-color: rgb(0,153,51);
+    cursor: pointer;
+    position: absolute;
+    border-radius: 50%;
+}
+.nodes_yellow {
+    display: flex;
+    background-color: rgb(204,204,0);
+    cursor: pointer;
+    position: absolute;
+}
+.nodes_yellow_circle{
+    display: flex;
+    background-color: rgb(204,204,0);
+    cursor: pointer;
+    position: absolute;
+    border-radius: 50%;
+}
+
+@-webkit-keyframes breathe {
+    0% {
+        opacity: .2;
+        box-shadow: 0 1px 2px #007BFF;
+    }
+    100% {
+        opacity: 1;
+        box-shadow: 0 1px 30px #007BFF;
+    }
+}
+
+.no-margin {
+    margin: 0 !important;
+}
+
+.no-padding {
+    padding: 0 !important;
+}
+
+#mobile-menu {
+    position: fixed;
+    top: 4rem;
+    right: -24rem;
+    width: 24rem;
+    height: 80%;
+    background-color: rgba(255, 255, 255, 0.9);
+    z-index: 9999;
+    transition: all 0.3s ease-in;
+    overflow: hidden;
+    overflow-y: auto;
+}
+
+#mobile-menu::-webkit-scrollbar {
+    width: 4px;
+}
+
+#mobile-menu::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    -webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+    background: rgba(0, 0, 0, 0.2);
+}
+
+#mobile-menu::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+    border-radius: 0;
+    background: rgba(0, 0, 0, 0.1);
+}
+
+
+.mobile-nav ul li {
+    color: black;
+    display: block;
+    padding: 1em 0;
+    cursor: pointer;
+}
+
+.mobile-nav ul li.header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 1rem 5%;
+}
+
+#code_table tbody tr:hover {
+    background-color: #23A1F6;
+    color: #ffffff;
+}
+
+.show-nav {
+    transform: translateX(0);
+}
+
+.hide-nav {
+    transform: translateX(-24rem);
+}
+
+.nav-btn {
+    position: absolute;
+    top: 1rem;
+    right: 22rem;
+}
+
+#code_table tr {
+    height: 3rem;
+    transition: all 0.2s ease-out;
+}
+
+#code_table tbody tr:nth-child(odd) {
+    background: #23A1F6;
+}
+
+#code_table tr td {
+    text-align: center;
+}
+
+.submit {
+    position: absolute;
+    bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+#script_text {
+    min-height: 8rem;
+}
+
+.red {
+    color: red;
+}
+
+.hide {
+    background: white;
+    position: absolute;
+    display: none;
+    width: 120px;
+    justify-content: center;
+    align-items: center;
+    border-radius: 5px;
+}
+
+#menus ul {
+    margin: 0;
+}
+
+#menus li {
+    text-align: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #cccccc;
+}
+
+#menus li:hover {
+    background-color: green;
+}
+
+.circle_control {
+    width: 40px;
+    height: 40px;
+    background-color: #007BFF;
+    border-radius: 50%;
+    margin: 1rem 20px;
+    position: absolute;
+    top: 0rem;
+    right: 28rem;
+}
+
+.square_control {
+    width: 40px;
+    height: 40px;
+    background-color: #007BFF;
+    margin: 1rem 20px;
+    position: absolute;
+    top: 0rem;
+    right: 32rem;
+}
+
+/** 操作边框 **/
+.nodebo {
+    border-radius: 15px;
+    width: 15px;
+    height: 15px;
+    background: #fff;
+    position: absolute;
+    border: 1px solid #00ffff;
+}
+
+.node_top_left {
+    left: calc(0px - (15px) / 2);
+    top: calc(-15px / 2);
+    cursor: nw-resize;
+}
+
+.node_top_center {
+    left: calc(50% - (15px) / 2);
+    top: calc(-15px / 2);
+    cursor: n-resize;
+}
+
+.node_top_right {
+    right: calc(-15px / 2);
+    top: calc(-15px / 2);
+    cursor: ne-resize;
+}
+
+.node_center_left {
+    left: calc(-15px / 2);
+    top: calc(50% - 15px / 2);
+    cursor: w-resize;
+}
+
+.node_center_right {
+    right: calc(-15px / 2);
+    top: calc(50% - 15px / 2);
+    cursor: e-resize;
+}
+
+.node_bottom_left {
+    left: calc(0px - (15px) / 2);
+    bottom: calc(0px - 15px / 2);
+    cursor: sw-resize;
+}
+
+.node_bottom_center {
+    left: calc(50% - (15px) / 2);
+    bottom: calc(0px - 15px / 2);
+    cursor: s-resize;
+}
+
+.node_bottom_right {
+    right: calc(-15px / 2);
+    bottom: calc(0px - 15px / 2);
+    cursor: se-resize;
+}
+
+.node_scale {
+    border-radius: 15px;
+    width: 20px;
+    height: 20px;
+    position: absolute;
+    /*border: 1px solid #00ffff;*/
+    top: -36px;
+    /*background: #00ffff;*/
+    background: url("../img/img-del.png") no-repeat -24px 0px;
+    left: calc(50% - (15px) / 2);
+}
+
+.node_shu {
+    width: 0px;
+    height: 15px;
+    top: -22px;
+    color: #00ffff;
+    border: 2px solid #00ffff;
+    font-weight: bold;
+    text-align: center;
+    left: calc(50%);
+    position: absolute;
+}
+
+.around {
+    z-index: 99;
+    display: none;
+}
+
+/**移动管道**/
+.can_move_box {
+    border: 1px dashed #cccccc;
+    position: relative;
+}
+
+#bigDiv {
+    position: relative;
+}
+
+#canvas_box {
+    position: fixed;
+    left: 0;
+    top: 0;
+}
+
+.code_list, .edit_code_list {
+    max-height: 300px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.code_list .set-code, .edit_code_list .set-code {
+    line-height: 60px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.code_list .set-code input[type='checkbox'], .edit_code_list .set-code input[type='checkbox'] {
+    width: 20px;
+    height: 20px;
+}
+
+.code_list .set-code span, .edit_code_list .set-code span {
+    width: 90%;
+    padding-left: 25px;
+}
+
+.code_list::-webkit-scrollbar, .edit_code_list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.code_list::-webkit-scrollbar-thumb, .edit_code_list::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    -webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.code_list::-webkit-scrollbar-track, .edit_code_list::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+    border-radius: 0;
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.delete_img {
+    width: 18px;
+    margin-left: 10px;
+}
+
+.img-tip {
+    font-size: 14px;
+    color: #cccccc;
+}
+
+.u_size1 {
+    background-image: url('../img/jg1.png');
+    background-repeat: no-repeat;
+    background-size: 100% 100%;;
+}
+
+.u_size2 {
+    background-image: url('../img/jg2.png');
+    background-repeat: no-repeat;
+    background-size: 100% 100%;;
+}
+
+.u_size3 {
+    background-image: url('../img/jg3.png');
+    background-repeat: no-repeat;
+    background-size: 100% 100%;;
+}
+
+.u_size4 {
+    background-image: url('../img/jg4.png');
+    background-repeat: no-repeat;
+    background-size: 100% 100%;;
+}
+
+.infos {
+    display: flex;
+    flex-direction: column;
+    background-color: #007bff;
+    width: 20rem;
+    height: 60px;
+    position: absolute;
+    z-index: 999;
+    color:#FFFFFF;
+    align-items: center;
+}
+
+
+#controlInfoModel .modal-content{
+    background-image: url("../img/bg.png");
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    color: #FFFFFF;
+    position: absolute;
+    top: -6rem;
+}
+#controlInfoModel .modal-content .modal-body{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0;
+}
+#controlInfoModel .modal-dialog{
+    width: 240px;
+}
+#controlInfoModel .modal-content .modal-body div{
+    display: flex;
+    height: 40px;
+    align-items: center;
+    background-image: url("../img/jd01.png");
+    background-repeat: no-repeat;
+    background-size: 20%;
+    background-position-x: 100%;
+    background-position-y: 50%;
+    width: 100%;
+    border-bottom: 1px solid #f3f4f5;
+    color: #A26D1D;
+    padding-left: 10px;
+}
