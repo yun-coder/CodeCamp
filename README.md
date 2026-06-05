@@ -2,7 +2,7 @@
 
 个人学习项目集合 —— 汇集多个 AI、工具、平台类开源项目的学习与实验仓库。
 
-> **最后更新：** 2026-06-05 | **项目总数：** 27 个（25 个有 GitHub 仓库 + 2 个本地项目）
+> **最后更新：** 2026-06-05 | **项目总数：** 26 个（18 个有 GitHub + 8 个本地项目）
 
 ---
 
@@ -12,11 +12,11 @@
 |------|------|--------|
 | **agency-agents** | AI 代理人格库，用 Markdown 定义大量专业代理（工程、设计、营销等），可快速在多工具中复用 | [msitarzewski/agency-agents](https://github.com/msitarzewski/agency-agents) |
 | **awesome-ai-apps** | 实用 AI 应用示例集合，收录 80+ 个 LLM 应用示例和教程，含 Agents、RAG、MCP 等分类 | [Arindam200/awesome-ai-apps](https://github.com/Arindam200/awesome-ai-apps) |
-| **canvas-printer** | 基于 Canvas 的可视化 HTML 打印设计器，支持 HTML 导入、元素拖拽、骑缝章功能 | [yun-coder/canvas-printer](https://github.com/yun-coder/canvas-printer) |
+| **canvas-printer** | 基于 Canvas 的可视化 HTML 打印设计器，支持 HTML 导入、元素拖拽、骑缝章功能 | *(本地项目)* |
 | **career-ops** | AI 驱动的求职/Offer 管理系统，自动评估职位、生成 ATS 优化简历 PDF、批量处理 Offer | [santifer/career-ops](https://github.com/santifer/career-ops) |
-| **components-idea** | 中造软件私有组件库（common-tool），封装频繁使用的通用组件，提升开发效率 | [yun-coder/components-idea](https://github.com/yun-coder/components-idea) |
-| **electron-vue-print** | zz-print 打印客户端 v1，Electron + Vue 3 + Vite | [yun-coder/electron-vue-print](https://github.com/yun-coder/electron-vue-print) |
-| **electron-vue-print2** | zz-print 打印客户端 v2，支持条形码和二维码设计与打印 | [yun-coder/electron-vue-print2](https://github.com/yun-coder/electron-vue-print2) |
+| **components-idea** | 中造软件私有组件库（common-tool），封装频繁使用的通用组件，提升开发效率 | *(本地项目)* |
+| **electron-vue-print** | zz-print 打印客户端 v1，Electron + Vue 3 + Vite | *(本地项目)* |
+| **electron-vue-print2** | zz-print 打印客户端 v2，支持条形码和二维码设计与打印 | *(本地项目)* |
 | **Hands-On-Large-Language-Models** | 《Hands-On Large Language Models》配套实战代码，12 章 Jupyter 笔记本覆盖 LLM 核心概念 | [HandsOnLLM/Hands-On-Large-Language-Models](https://github.com/HandsOnLLM/Hands-On-Large-Language-Models) |
 | **hello-agents** | 中文系统化智能体教程：从概念、原理到实战，涵盖 ReAct、Plan-Solve、Reflection 等范式 | [datawhalechina/hello-agents](https://github.com/datawhalechina/hello-agents) |
 | **Horizon** | AI 驱动的新闻雷达，多源聚合、AI 评分筛选，生成中英双语每日简报 | [Thysrael/Horizon](https://github.com/Thysrael/Horizon) |
@@ -24,12 +24,11 @@
 | **huobao-drama** | AI 短剧自动化生产平台，5 个专用 AI Agent，文生图/TTS/FFmpeg 合成管线 | [chatfire-AI/huobao-drama](https://github.com/chatfire-AI/huobao-drama) |
 | **IDM-VTON** | 基于扩散模型的虚拟试穿系统，将服装合成到人物照片，支持 Gradio Web Demo | [yisol/IDM-VTON](https://github.com/yisol/IDM-VTON) |
 | **ImageLayerAgent** | 电商图片替换工作流，PaddleOCR + 视觉规划模型实现文字保护和区域替换 | *(本地项目)* |
-| **langfuse** | 开源 LLM 工程平台：可观测性追踪、提示管理、评估测试、数据集实验（YC W23） | [langfuse/langfuse](https://github.com/langfuse/langfuse) |
 | **learn-gitHub-project** | 项目学习助手副本（与 project-helper 同仓库），自动克隆分析生成学习报告 | [yun-coder/learn-gitHub-project](https://github.com/yun-coder/learn-gitHub-project) |
 | **local-deep-research** | 本地化深度研究助手，支持多 LLM 和多检索引擎，注重隐私与安全 | [LearningCircuit/local-deep-research](https://github.com/LearningCircuit/local-deep-research) |
 | **MoneyPrinterTurbo** | AI 一键生成高清短视频，自动完成脚本→配音→字幕→素材→合成全流程（⭐55k） | [harry0703/MoneyPrinterTurbo](https://github.com/harry0703/MoneyPrinterTurbo) |
-| **my-code-project** | zyl-plug-common 工具插件，Vue 3 + Vite，自定义 Skills 示例 | [yun-coder/my-code-project](https://github.com/yun-coder/my-code-project) |
-| **one-click** | 一键 AI 命令行工具，智能路由到最省钱的模型 | [yun-coder/one-click](https://github.com/yun-coder/one-click) |
+| **my-code-project** | zyl-plug-common 工具插件，Vue 3 + Vite，自定义 Skills 示例 | *(本地项目)* |
+| **one-click** | 一键 AI 命令行工具，智能路由到最省钱的模型 | *(本地项目)* |
 | **OpenMAIC** | 多代理互动课堂平台，自动生成课程大纲、幻灯片、测验和互动模拟 | [THU-MAIC/OpenMAIC](https://github.com/THU-MAIC/OpenMAIC) |
 | **poly-studio** | 对话式多模态内容生成平台（图片/视频/3D），FastAPI + LangGraph Agent 编排 | [yun-coder/poly-studio](https://github.com/yun-coder/poly-studio) |
 | **project-helper** | 项目学习助手：输入 GitHub 地址自动克隆、扫描、缓存并生成源码学习报告 | [yun-coder/learn-gitHub-project](https://github.com/yun-coder/learn-gitHub-project) |
