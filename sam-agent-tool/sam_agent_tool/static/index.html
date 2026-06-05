@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAM Agent Tool — Image Segmentation</title>
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   UI UX Pro MAX — Design System
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Design Tokens ─────────────────────────────────────────── */
+:root {
+  --bg-primary: #0a0b10;
+  --bg-secondary: #12141c;
+  --bg-elevated: #1a1d29;
+  --glass-bg: rgba(26, 29, 41, 0.55);
+  --glass-bg-hover: rgba(26, 29, 41, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.07);
+  --glass-border-hover: rgba(255, 255, 255, 0.14);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  --text-primary: #f0f2f8;
+  --text-secondary: #9ca0b0;
+  --text-muted: #6b7084;
+  --accent: #7c5cfc;
+  --accent-glow: #a78bfa;
+  --accent-dim: rgba(124, 92, 252, 0.15);
+  --accent-hover: rgba(124, 92, 252, 0.25);
+  --success: #34d399;
+  --success-dim: rgba(52, 211, 153, 0.15);
+  --warning: #fbbf24;
+  --warning-dim: rgba(251, 191, 36, 0.15);
+  --danger: #f87171;
+  --danger-dim: rgba(248, 113, 113, 0.15);
+  --gradient-accent: linear-gradient(135deg, #7c5cfc, #a78bfa);
+  --gradient-bg: radial-gradient(ellipse at 20% 50%, rgba(124,92,252,0.06) 0%, transparent 50%),
+                  radial-gradient(ellipse at 80% 20%, rgba(167,139,250,0.04) 0%, transparent 50%);
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  --radius-sm: 6px;  --radius-md: 10px;  --radius-lg: 16px;  --radius-xl: 24px;  --radius-full: 9999px;
+  --glass-blur: 20px;
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 150ms;  --duration-normal: 250ms;  --duration-slow: 400ms;
+  --z-sidebar: 100;  --z-modal: 1000;  --z-toast: 1100;
+  --sidebar-width: 260px;
+}
+
+/* ── Reset & Base ──────────────────────────────────────────── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 15px; scroll-behavior: smooth; }
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: -1;
+  background: var(--gradient-bg); pointer-events: none;
+}
+
+/* ── Typography ────────────────────────────────────────────── */
+h1, h2, h3, h4 { font-weight: 600; line-height: 1.25; }
+.gradient-text {
+  background: var(--gradient-accent);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.section-label {
+  font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--text-muted); font-weight: 600;
+}
+
+/* ── Animations ────────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInLeft {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 8px rgba(124, 92, 252, 0.25); }
+  50% { box-shadow: 0 0 22px rgba(124, 92, 252, 0.5); }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(100%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideOutRight {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(100%); }
+}
+@keyframes dotPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.7); }
+}
+
+/* ── Glass Morphism ────────────────────────────────────────── */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  transition: all var(--duration-normal) var(--ease-out-expo);
+}
+.glass-card:hover {
+  border-color: var(--glass-border-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+}
+
+/* ── Layout ────────────────────────────────────────────────── */
+.app-layout { display: flex; min-height: 100vh; }
+
+/* ── Sidebar ───────────────────────────────────────────────── */
+.sidebar {
+  width: var(--sidebar-width); min-width: var(--sidebar-width);
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--glass-border);
+  display: flex; flex-direction: column;
+  padding: 24px 16px;
+  position: fixed; top: 0; left: 0; bottom: 0;
+  z-index: var(--z-sidebar);
+  animation: fadeInLeft 400ms var(--ease-out-expo);
+}
+.sidebar__logo {
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 8px; margin-bottom: 32px;
+}
+.sidebar__logo svg { flex-shrink: 0; }
+.sidebar__logo-text {
+  font-size: 1.05rem; font-weight: 700;
+  background: var(--gradient-accent);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+}
+.sidebar__logo-sub {
+  font-size: 0.65rem; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+
+.sidebar__nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.nav-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 12px; border-radius: var(--radius-md);
+  cursor: pointer; transition: all var(--duration-fast) var(--ease-in-out);
+  color: var(--text-secondary); font-size: 0.875rem; font-weight: 500;
+  border: none; background: none; width: 100%; text-align: left;
+  position: relative;
+}
+.nav-item:hover { background: var(--accent-dim); color: var(--text-primary); }
+.nav-item--active {
+  background: var(--accent-dim); color: var(--text-primary);
+}
+.nav-item--active::before {
+  content: ''; position: absolute; left: 0; top: 8px; bottom: 8px;
+  width: 3px; background: var(--accent); border-radius: 0 3px 3px 0;
+}
+.nav-item svg { flex-shrink: 0; opacity: 0.7; }
+.nav-item--active svg { opacity: 1; }
+.nav-item__badge {
+  margin-left: auto; font-size: 0.65rem; padding: 2px 8px;
+  border-radius: var(--radius-full); font-weight: 600;
+  background: var(--accent-dim); color: var(--accent-glow);
+}
+
+.sidebar__divider { height: 1px; background: var(--glass-border); margin: 16px 8px; }
+
+.sidebar__footer { padding: 0 8px; }
+.health-indicator {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.75rem; color: var(--text-muted);
+  padding: 8px 4px;
+}
+.health-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--success); flex-shrink: 0;
+  animation: dotPulse 2s ease-in-out infinite;
+}
+.health-dot--loading { background: var(--warning); }
+.health-dot--error { background: var(--danger); }
+.sidebar__version { font-size: 0.65rem; color: var(--text-muted); padding: 4px; }
+
+/* ── Main Content ──────────────────────────────────────────── */
+.main-content {
+  flex: 1; margin-left: var(--sidebar-width);
+  padding: 32px 40px; min-height: 100vh;
+}
+
+/* ── Page Header ───────────────────────────────────────────── */
+.page-header { margin-bottom: 28px; }
+.page-header__title {
+  font-size: 1.75rem; font-weight: 700; margin-bottom: 4px;
+}
+.page-header__subtitle { color: var(--text-secondary); font-size: 0.875rem; }
+
+/* ── Page Panels ───────────────────────────────────────────── */
+.page-panel { display: none; animation: fadeInUp 400ms var(--ease-out-expo); }
+.page-panel--active { display: block; }
+
+/* ── Upload Zone ───────────────────────────────────────────── */
+.upload-zone {
+  border: 2px dashed var(--glass-border);
+  border-radius: var(--radius-lg); padding: 48px 24px;
+  text-align: center; cursor: pointer; transition: all var(--duration-normal) var(--ease-out-expo);
+  background: var(--glass-bg);
+}
+.upload-zone:hover, .upload-zone--drag {
+  border-color: var(--accent); background: var(--accent-dim);
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+.upload-zone--has-file {
+  border-color: var(--success); border-style: solid;
+  background: var(--success-dim);
+}
+.upload-zone__icon { font-size: 40px; margin-bottom: 12px; display: block; }
+.upload-zone__title { font-size: 1rem; font-weight: 600; margin-bottom: 4px; }
+.upload-zone__hint { font-size: 0.8rem; color: var(--text-muted); }
+.upload-zone input[type=file] { display: none; }
+.upload-zone__preview {
+  max-width: 100%; max-height: 180px; border-radius: var(--radius-md);
+  margin-top: 16px; display: none;
+}
+.upload-zone--has-file .upload-zone__preview { display: inline-block; }
+
+/* ── Buttons ───────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 20px; border-radius: var(--radius-md);
+  font-size: 0.875rem; font-weight: 600; cursor: pointer;
+  border: none; transition: all var(--duration-fast) var(--ease-in-out);
+  font-family: var(--font-sans);
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary {
+  background: var(--accent); color: #fff;
+  box-shadow: 0 4px 16px rgba(124, 92, 252, 0.35);
+}
+.btn-primary:hover { background: #6b4ef0; box-shadow: 0 6px 24px rgba(124, 92, 252, 0.5); }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+.btn-secondary {
+  background: var(--glass-bg); color: var(--text-primary);
+  border: 1px solid var(--glass-border);
+}
+.btn-secondary:hover { background: var(--glass-bg-hover); border-color: var(--glass-border-hover); }
+.btn-ghost {
+  background: transparent; color: var(--text-secondary); padding: 8px 12px;
+}
+.btn-ghost:hover { background: var(--accent-dim); color: var(--text-primary); }
+.btn-sm { padding: 6px 12px; font-size: 0.75rem; }
+.btn-icon {
+  width: 36px; height: 36px; padding: 0; display: inline-flex;
+  align-items: center; justify-content: center; border-radius: var(--radius-md);
+}
+
+/* ── Toolbar ───────────────────────────────────────────────── */
+.toolbar {
+  display: flex; gap: 6px; padding: 8px 12px;
+  background: var(--glass-bg); border-radius: var(--radius-md);
+  border: 1px solid var(--glass-border); margin-bottom: 12px;
+}
+.tool-btn {
+  padding: 7px 14px; border-radius: var(--radius-sm); cursor: pointer;
+  font-size: 0.8rem; font-weight: 500; border: 1px solid transparent;
+  background: transparent; color: var(--text-secondary);
+  transition: all var(--duration-fast) var(--ease-in-out);
+  font-family: var(--font-sans);
+  display: flex; align-items: center; gap: 6px;
+}
+.tool-btn:hover { background: var(--accent-dim); color: var(--text-primary); }
+.tool-btn--active {
+  background: var(--accent); color: #fff; border-color: var(--accent);
+}
+.tool-btn--fg.tool-btn--active { background: #22c55e; border-color: #22c55e; }
+.tool-btn--bg.tool-btn--active { background: #ef4444; border-color: #ef4444; }
+.tool-btn--danger.tool-btn--active { background: var(--danger); border-color: var(--danger); }
+.tool-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.tool-dot--fg { background: #22c55e; }
+.tool-dot--bg { background: #ef4444; }
+
+/* ── Canvas Area ───────────────────────────────────────────── */
+.canvas-card { padding: 0; overflow: hidden; margin-bottom: 16px; }
+.canvas-wrapper {
+  position: relative; background: #000;
+  display: flex; align-items: center; justify-content: center;
+  min-height: 360px; max-height: 520px; overflow: hidden;
+  user-select: none; -webkit-user-select: none;
+}
+.canvas-wrapper canvas { display: block; max-width: 100%; cursor: crosshair; }
+
+/* ── Config Panel ──────────────────────────────────────────── */
+.config-toggle {
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+  color: var(--text-secondary); font-size: 0.8rem; font-weight: 500;
+  padding: 8px 0; margin-bottom: 8px; background: none; border: none;
+  font-family: var(--font-sans);
+}
+.config-toggle:hover { color: var(--text-primary); }
+.config-toggle__arrow {
+  transition: transform var(--duration-fast) var(--ease-in-out);
+  display: inline-block;
+}
+.config-toggle--open .config-toggle__arrow { transform: rotate(90deg); }
+.config-panel {
+  display: none; padding: 20px; margin-bottom: 16px;
+  border-radius: var(--radius-lg);
+}
+.config-panel--open { display: block; animation: fadeInUp 250ms var(--ease-out-expo); }
+.config-row {
+  display: flex; align-items: center; gap: 16px; margin-bottom: 14px;
+}
+.config-row:last-child { margin-bottom: 0; }
+.config-row label {
+  font-size: 0.8rem; color: var(--text-secondary); min-width: 140px; font-weight: 500;
+}
+.config-row input[type=range] { flex: 1; accent-color: var(--accent); }
+.config-row input[type=number] {
+  width: 80px; padding: 6px 10px; border-radius: var(--radius-sm);
+  background: var(--bg-primary); border: 1px solid var(--glass-border);
+  color: var(--text-primary); font-family: var(--font-mono); font-size: 0.8rem;
+  text-align: center;
+}
+.config-row .config-val {
+  font-family: var(--font-mono); font-size: 0.75rem;
+  color: var(--accent-glow); min-width: 40px; text-align: right;
+}
+
+/* ── Points Panel ──────────────────────────────────────────── */
+.points-panel { padding: 16px; margin-bottom: 16px; }
+.points-panel__header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 10px;
+}
+.points-panel__count { font-weight: 600; font-size: 0.85rem; }
+.points-list { max-height: 160px; overflow-y: auto; }
+.points-list__empty { color: var(--text-muted); font-size: 0.8rem; text-align: center; padding: 16px; }
+.point-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 10px; border-radius: var(--radius-sm);
+  font-size: 0.8rem; font-family: var(--font-mono);
+  transition: background var(--duration-fast);
+}
+.point-row:hover { background: var(--accent-dim); }
+.point-row__index { color: var(--text-muted); min-width: 24px; }
+.point-row__coords { flex: 1; color: var(--text-secondary); }
+.point-row__label {
+  padding: 2px 8px; border-radius: var(--radius-full);
+  font-size: 0.65rem; font-weight: 600; font-family: var(--font-sans);
+}
+.point-row__label--fg { background: #22c55e33; color: #22c55e; }
+.point-row__label--bg { background: #ef444433; color: #ef4444; }
+.point-row__remove {
+  cursor: pointer; color: var(--text-muted); font-size: 1rem;
+  background: none; border: none; padding: 2px 6px; border-radius: var(--radius-sm);
+  line-height: 1;
+}
+.point-row__remove:hover { color: var(--danger); background: var(--danger-dim); }
+
+/* ── Box Form ──────────────────────────────────────────────── */
+.box-form { padding: 16px; margin-bottom: 16px; }
+.box-form__grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+.box-form__field { display: flex; flex-direction: column; gap: 4px; }
+.box-form__field label {
+  font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em;
+}
+.box-form__field input {
+  padding: 8px 10px; border-radius: var(--radius-sm);
+  background: var(--bg-primary); border: 1px solid var(--glass-border);
+  color: var(--text-primary); font-family: var(--font-mono); font-size: 0.8rem;
+}
+
+/* ── Action Bar ────────────────────────────────────────────── */
+.action-bar { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; }
+
+/* ── Results Section ───────────────────────────────────────── */
+.results-section { display: none; }
+.results-section--active {
+  display: block; animation: fadeInUp 400ms var(--ease-out-expo);
+}
+.stats-bar {
+  display: flex; gap: 24px; flex-wrap: wrap;
+  padding: 16px 20px; margin-bottom: 20px; border-radius: var(--radius-lg);
+}
+.stat-item { display: flex; flex-direction: column; }
+.stat-item__label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.stat-item__value { font-size: 1.25rem; font-weight: 700; font-family: var(--font-mono); color: var(--accent-glow); }
+
+.overlay-card {
+  margin-bottom: 20px; border-radius: var(--radius-lg); overflow: hidden; padding: 0;
+}
+.overlay-card img { width: 100%; display: block; }
+
+.object-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+.object-card { padding: 14px; cursor: pointer; }
+.object-card__preview {
+  width: 100%; aspect-ratio: 4/3; overflow: hidden;
+  border-radius: var(--radius-md); margin-bottom: 10px;
+  background: var(--bg-primary);
+}
+.object-card__preview img { width: 100%; height: 100%; object-fit: cover; }
+.object-card__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.object-card__id { font-weight: 700; font-size: 0.9rem; }
+.object-card__score { font-family: var(--font-mono); font-size: 0.75rem; font-weight: 600; }
+.object-card__meta { font-size: 0.75rem; color: var(--text-muted); display: flex; gap: 12px; flex-wrap: wrap; }
+
+/* ── Status Bar ────────────────────────────────────────────── */
+.status-bar {
+  display: none; padding: 16px 20px; border-radius: var(--radius-md);
+  margin-bottom: 16px; align-items: center; gap: 12px; font-weight: 500;
+}
+.status-bar--active { display: flex; }
+.status-bar--loading {
+  background: var(--accent-dim); border: 1px solid var(--accent);
+  color: var(--accent-glow);
+}
+.status-bar--success {
+  background: var(--success-dim); border: 1px solid var(--success);
+  color: var(--success);
+}
+.status-bar--error {
+  background: var(--danger-dim); border: 1px solid var(--danger);
+  color: var(--danger);
+}
+.spinner {
+  width: 18px; height: 18px; border: 2px solid transparent;
+  border-top-color: currentColor; border-radius: 50%;
+  animation: spin 0.8s linear infinite; flex-shrink: 0;
+}
+
+/* ── Modal ─────────────────────────────────────────────────── */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; z-index: var(--z-modal);
+  background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
+  justify-content: center; align-items: center;
+}
+.modal-overlay--active { display: flex; animation: scaleIn 200ms var(--ease-out-expo); }
+.modal-content { padding: 24px; position: relative; max-width: 90vw; max-height: 90vh; }
+.modal-content img { max-width: 100%; max-height: 75vh; border-radius: var(--radius-md); display: block; }
+.modal-close {
+  position: absolute; top: 16px; right: 20px; font-size: 24px;
+  color: var(--text-primary); cursor: pointer; background: none; border: none;
+  width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius-full); transition: background var(--duration-fast);
+}
+.modal-close:hover { background: var(--danger-dim); color: var(--danger); }
+.modal-caption { margin-top: 12px; font-size: 0.85rem; color: var(--text-secondary); text-align: center; }
+
+/* ── Toast ─────────────────────────────────────────────────── */
+.toast-container {
+  position: fixed; top: 20px; right: 20px; z-index: var(--z-toast);
+  display: flex; flex-direction: column; gap: 8px; pointer-events: none;
+}
+.toast {
+  padding: 12px 20px; border-radius: var(--radius-md); font-size: 0.85rem;
+  font-weight: 500; animation: slideInRight 300ms var(--ease-out-expo);
+  pointer-events: auto; max-width: 380px;
+}
+.toast--success { background: #065f46; border: 1px solid var(--success); color: #d1fae5; }
+.toast--error { background: #7f1d1d; border: 1px solid var(--danger); color: #fee2e2; }
+.toast--info { background: var(--accent-dim); border: 1px solid var(--accent); color: var(--accent-glow); }
+.toast--removing { animation: slideOutRight 250ms var(--ease-in-out) forwards; }
+
+/* ── Skeleton Loading ──────────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-elevated) 25%, #252836 50%, var(--bg-elevated) 75%);
+  background-size: 200% 100%; animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+
+/* ── Scrollbar ─────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .sidebar { width: 220px; min-width: 220px; padding: 16px 10px; }
+  .sidebar__logo-text { font-size: 0.9rem; }
+  .nav-item { padding: 9px 10px; font-size: 0.8rem; }
+  :root { --sidebar-width: 220px; }
+  .main-content { padding: 24px 20px; }
+}
+@media (max-width: 680px) {
+  .sidebar {
+    width: 100%; min-width: auto; height: auto;
+    position: relative; flex-direction: row; flex-wrap: wrap;
+    padding: 12px; gap: 6px;
+  }
+  .sidebar__logo { margin-bottom: 0; }
+  .sidebar__nav { flex-direction: row; flex: none; }
+  .nav-item { font-size: 0.7rem; padding: 6px 10px; }
+  .nav-item--active::before { top: auto; left: 4px; right: 4px; bottom: 2px; width: auto; height: 2px; }
+  .sidebar__divider, .sidebar__footer { display: none; }
+  .app-layout { flex-direction: column; }
+  .main-content { margin-left: 0; padding: 16px; }
+  :root { --sidebar-width: 0; }
+  .object-grid { grid-template-columns: 1fr; }
+  .toolbar { flex-wrap: wrap; }
+  .config-row { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .action-bar { flex-direction: column; }
+  .page-header__title { font-size: 1.25rem; }
+  .stats-bar { gap: 12px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     APP LAYOUT
+     ═══════════════════════════════════════════════════════════ -->
+
+<div class="app-layout">
+
+<!-- ── Sidebar ─────────────────────────────────────────────── -->
+<aside class="sidebar">
+  <div class="sidebar__logo">
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+      <rect width="32" height="32" rx="8" fill="rgba(124,92,252,0.2)"/>
+      <path d="M8 12h6l4 8-4 8H8l4-8-4-8z" fill="#a78bfa"/>
+      <path d="M16 12h8l-6 12h-8l6-12z" fill="#7c5cfc"/>
+    </svg>
+    <div>
+      <div class="sidebar__logo-text">SAM Agent</div>
+      <div class="sidebar__logo-sub">Segmentation Tool</div>
+    </div>
+  </div>
+
+  <nav class="sidebar__nav">
+    <button class="nav-item nav-item--active" data-page="auto" onclick="navigate('auto')">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <circle cx="10" cy="10" r="3"/><circle cx="10" cy="10" r="7"/><line x1="10" y1="1" x2="10" y2="3"/><line x1="10" y1="17" x2="10" y2="19"/><line x1="1" y1="10" x2="3" y2="10"/><line x1="17" y1="10" x2="19" y2="10"/>
+      </svg>
+      Auto Segment
+      <span class="nav-item__badge">Auto</span>
+    </button>
+    <button class="nav-item" data-page="prompt" onclick="navigate('prompt')">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <path d="M4 4l3 12 2-5 5-2-10 8"/>
+        <circle cx="7" cy="13" r="1.5" fill="currentColor" stroke="none"/>
+      </svg>
+      Prompt Segment
+    </button>
+    <button class="nav-item" data-page="box" onclick="navigate('box')">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <rect x="3" y="4" width="14" height="12" rx="1" stroke-dasharray="3 1.5"/>
+        <circle cx="3" cy="4" r="1.2" fill="currentColor" stroke="none"/>
+        <circle cx="17" cy="4" r="1.2" fill="currentColor" stroke="none"/>
+        <circle cx="3" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+        <circle cx="17" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+      </svg>
+      Box Segment
+    </button>
+  </nav>
+
+  <div class="sidebar__divider"></div>
+
+  <div class="sidebar__footer">
+    <div class="health-indicator" id="healthIndicator">
+      <span class="health-dot health-dot--loading" id="healthDot"></span>
+      <span id="healthText">Checking...</span>
+    </div>
+    <div class="sidebar__version">v1.0.0 · ViT-B</div>
+  </div>
+</aside>
+
+<!-- ── Main Content ────────────────────────────────────────── -->
+<main class="main-content">
+
+  <div class="page-header">
+    <h1 class="page-header__title gradient-text" id="pageTitle">Auto Segment</h1>
+    <p class="page-header__subtitle" id="pageSubtitle">Upload an image — AI automatically segments all objects</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       PAGE: AUTO
+       ═══════════════════════════════════════════════════════ -->
+  <div class="page-panel page-panel--active" id="page-auto">
+    <div class="upload-zone glass-card" id="autoUploadZone">
+      <span class="upload-zone__icon">📤</span>
+      <div class="upload-zone__title">Click or drag image here</div>
+      <div class="upload-zone__hint">JPG · PNG · BMP · WebP — Max 20MB</div>
+      <input type="file" id="autoFileInput" accept="image/*">
+      <img class="upload-zone__preview" id="autoPreview">
+    </div>
+
+    <button class="config-toggle" id="configToggle" onclick="toggleConfig()">
+      <span class="config-toggle__arrow">▶</span> Advanced Parameters
+    </button>
+
+    <div class="config-panel glass-card" id="configPanel">
+      <div class="config-row">
+        <label>Points Per Side</label>
+        <input type="range" id="cfgPPS" min="8" max="64" value="32" oninput="syncConfigVal('cfgPPS','cfgPPSVal')">
+        <span class="config-val" id="cfgPPSVal">32</span>
+      </div>
+      <div class="config-row">
+        <label>Pred IoU Threshold</label>
+        <input type="range" id="cfgIoU" min="0.5" max="1" step="0.01" value="0.88" oninput="syncConfigVal('cfgIoU','cfgIoUVal')">
+        <span class="config-val" id="cfgIoUVal">0.88</span>
+      </div>
+      <div class="config-row">
+        <label>Stability Threshold</label>
+        <input type="range" id="cfgStab" min="0.5" max="1" step="0.01" value="0.95" oninput="syncConfigVal('cfgStab','cfgStabVal')">
+        <span class="config-val" id="cfgStabVal">0.95</span>
+      </div>
+      <div class="config-row">
+        <label>Min Mask Region Area</label>
+        <input type="number" id="cfgArea" value="0" min="0">
+      </div>
+    </div>
+
+    <div class="status-bar" id="autoStatusBar">
+      <span class="spinner"></span><span id="autoStatusText">Processing...</span>
+    </div>
+
+    <div class="results-section" id="autoResults"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       PAGE: PROMPT
+       ═══════════════════════════════════════════════════════ -->
+  <div class="page-panel" id="page-prompt">
+    <div class="upload-zone glass-card" id="promptUploadZone">
+      <span class="upload-zone__icon">📤</span>
+      <div class="upload-zone__title">Click or drag image here</div>
+      <div class="upload-zone__hint">Upload an image, then click on it to place segmentation points</div>
+      <input type="file" id="promptFileInput" accept="image/*">
+      <img class="upload-zone__preview" id="promptPreview">
+    </div>
+
+    <div id="promptWorkspace" style="display:none">
+      <div class="canvas-card glass-card">
+        <div class="toolbar">
+          <button class="tool-btn tool-btn--fg tool-btn--active" data-tool="add-fg" onclick="setPromptTool('add-fg')">
+            <span class="tool-dot tool-dot--fg"></span> Foreground
+          </button>
+          <button class="tool-btn tool-btn--bg" data-tool="add-bg" onclick="setPromptTool('add-bg')">
+            <span class="tool-dot tool-dot--bg"></span> Background
+          </button>
+          <button class="tool-btn" data-tool="remove" onclick="setPromptTool('remove')">
+            ✕ Remove Point
+          </button>
+          <button class="tool-btn tool-btn--danger" data-tool="clear" onclick="clearPromptPoints()">
+            🗑 Clear All
+          </button>
+        </div>
+        <div class="canvas-wrapper" id="promptCanvasWrapper">
+          <canvas id="promptCanvas"></canvas>
+        </div>
+      </div>
+
+      <div class="points-panel glass-card" id="pointsPanel">
+        <div class="points-panel__header">
+          <span class="points-panel__count">Points: <b id="pointsCount">0</b></span>
+        </div>
+        <div class="points-list" id="pointsList">
+          <div class="points-list__empty">Click on the image to add segmentation points</div>
+        </div>
+      </div>
+
+      <div class="action-bar">
+        <button class="btn btn-primary" id="runPromptBtn" disabled onclick="runPromptSegment()">
+          ▶ Run Segmentation
+        </button>
+        <span style="font-size:0.8rem;color:var(--text-muted)" id="promptHint">Add at least one point to begin</span>
+      </div>
+
+      <div class="status-bar" id="promptStatusBar">
+        <span class="spinner"></span><span id="promptStatusText">Processing...</span>
+      </div>
+    </div>
+
+    <div class="results-section" id="promptResults"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       PAGE: BOX
+       ═══════════════════════════════════════════════════════ -->
+  <div class="page-panel" id="page-box">
+    <div class="upload-zone glass-card" id="boxUploadZone">
+      <span class="upload-zone__icon">📤</span>
+      <div class="upload-zone__title">Click or drag image here</div>
+      <div class="upload-zone__hint">Upload an image, then draw a bounding box to segment</div>
+      <input type="file" id="boxFileInput" accept="image/*">
+      <img class="upload-zone__preview" id="boxPreview">
+    </div>
+
+    <div id="boxWorkspace" style="display:none">
+      <div class="canvas-card glass-card">
+        <div class="toolbar">
+          <button class="tool-btn tool-btn--active" data-tool="draw" onclick="setBoxTool('draw')">
+            ✏ Draw Box
+          </button>
+          <button class="tool-btn tool-btn--danger" data-tool="clear" onclick="clearBox()">
+            🗑 Clear Box
+          </button>
+        </div>
+        <div class="canvas-wrapper" id="boxCanvasWrapper">
+          <canvas id="boxCanvas"></canvas>
+        </div>
+      </div>
+
+      <div class="box-form glass-card" id="boxForm">
+        <div style="margin-bottom:12px;font-size:0.8rem;color:var(--text-secondary)">
+          Or enter coordinates manually:
+        </div>
+        <div class="box-form__grid">
+          <div class="box-form__field"><label>X1</label><input type="number" id="boxX1" placeholder="0"></div>
+          <div class="box-form__field"><label>Y1</label><input type="number" id="boxY1" placeholder="0"></div>
+          <div class="box-form__field"><label>X2</label><input type="number" id="boxX2" placeholder="0"></div>
+          <div class="box-form__field"><label>Y2</label><input type="number" id="boxY2" placeholder="0"></div>
+        </div>
+        <button class="btn btn-secondary" style="margin-top:10px" onclick="applyBoxCoords()">
+          Apply Coordinates
+        </button>
+      </div>
+
+      <div class="action-bar">
+        <button class="btn btn-primary" id="runBoxBtn" disabled onclick="runBoxSegment()">
+          ▶ Run Segmentation
+        </button>
+        <span style="font-size:0.8rem;color:var(--text-muted)" id="boxHint">Draw a box or enter coordinates to begin</span>
+      </div>
+
+      <div class="status-bar" id="boxStatusBar">
+        <span class="spinner"></span><span id="boxStatusText">Processing...</span>
+      </div>
+    </div>
+
+    <div class="results-section" id="boxResults"></div>
+  </div>
+
+</main>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MODAL
+     ═══════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-content glass-panel">
+    <button class="modal-close" id="modalClose">&times;</button>
+    <img id="modalImg" src="" alt="Preview">
+    <div class="modal-caption" id="modalCaption"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TOAST CONTAINER
+     ═══════════════════════════════════════════════════════════ -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCRIPTS
+     ═══════════════════════════════════════════════════════════ -->
+<script>
+/* ── Global State ─────────────────────────────────────────── */
+const state = {
+  currentPage: 'auto',
+  sessionId: null,
+  imageUrl: null,
+  imageWidth: 0,
+  imageHeight: 0,
+  results: null,
+  isProcessing: false,
+  modelReady: false,
+
+  // Auto
+  autoParams: {
+    points_per_side: 32,
+    pred_iou_thresh: 0.88,
+    stability_score_thresh: 0.95,
+    min_mask_region_area: 0,
+  },
+
+  // Prompt
+  points: [],       // {x, y, label: 1|0}
+  promptTool: 'add-fg',
+
+  // Box
+  box: null,        // {x1, y1, x2, y2}
+  boxTool: 'draw',
+  isDrawing: false,
+  drawStart: null,
+};
+
+/* ── DOM Cache ─────────────────────────────────────────────── */
+const $ = id => document.getElementById(id);
+const pageTitles = {
+  auto:   { title: 'Auto Segment',          sub: 'Upload an image — AI automatically segments all objects' },
+  prompt: { title: 'Point Prompt Segment',  sub: 'Click on the image to place points, then run segmentation' },
+  box:    { title: 'Box Prompt Segment',    sub: 'Draw a bounding box around an object, then run segmentation' },
+};
+
+/* ── Router ────────────────────────────────────────────────── */
+function navigate(page) {
+  if (state.currentPage === page) return;
+  const prevPanel = $('page-' + state.currentPage);
+  const nextPanel = $('page-' + page);
+
+  // Update nav
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.toggle('nav-item--active', el.dataset.page === page);
+  });
+
+  // Page header
+  $('pageTitle').textContent = pageTitles[page].title;
+  $('pageSubtitle').textContent = pageTitles[page].sub;
+
+  // Transition
+  if (prevPanel) {
+    prevPanel.style.opacity = '0';
+    prevPanel.style.transform = 'translateY(8px)';
+    setTimeout(() => prevPanel.classList.remove('page-panel--active'), 200);
+  }
+
+  if (nextPanel) {
+    nextPanel.classList.add('page-panel--active');
+    nextPanel.style.opacity = '0';
+    nextPanel.style.transform = 'translateY(8px)';
+    requestAnimationFrame(() => {
+      nextPanel.style.transition = 'opacity 350ms var(--ease-out-expo), transform 350ms var(--ease-out-expo)';
+      nextPanel.style.opacity = '1';
+      nextPanel.style.transform = 'translateY(0)';
+    });
+  }
+
+  state.currentPage = page;
+  window.location.hash = page;
+}
+
+function handleRoute() {
+  const hash = window.location.hash.replace('#', '') || 'auto';
+  if (['auto', 'prompt', 'box'].includes(hash)) navigate(hash);
+}
+window.addEventListener('hashchange', handleRoute);
+
+/* ── API Client ────────────────────────────────────────────── */
+const API = {
+  async upload(file) {
+    const fd = new FormData(); fd.append('file', file);
+    const res = await fetch('/api/upload', { method: 'POST', body: fd });
+    if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.detail || 'Upload failed'); }
+    return res.json();
+  },
+  async segmentAuto(sessionId, params = {}) {
+    const res = await fetch(`/api/segment/auto/${sessionId}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.detail || 'Segmentation failed'); }
+    return res.json();
+  },
+  async segmentPrompt(sessionId, points, labels) {
+    const res = await fetch(`/api/segment/prompt/${sessionId}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ points, labels }),
+    });
+    if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.detail || 'Segmentation failed'); }
+    return res.json();
+  },
+  async segmentBox(sessionId, box) {
+    const res = await fetch(`/api/segment/box/${sessionId}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ box }),
+    });
+    if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.detail || 'Segmentation failed'); }
+    return res.json();
+  },
+  async health() {
+    const res = await fetch('/api/health');
+    return res.json();
+  },
+};
+
+/* ── Toast ─────────────────────────────────────────────────── */
+function showToast(msg, type = 'info') {
+  const container = $('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast toast--${type}`;
+  toast.textContent = msg;
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.add('toast--removing');
+    setTimeout(() => toast.remove(), 260);
+  }, 3500);
+}
+
+/* ── Status Bar ────────────────────────────────────────────── */
+function showStatus(page, type, msg) {
+  const bar = $(page + 'StatusBar');
+  const text = $(page + 'StatusText');
+  if (!msg) { bar.classList.remove('status-bar--active'); return; }
+  bar.className = `status-bar status-bar--active status-bar--${type}`;
+  if (type === 'loading') text.parentElement.querySelector('.spinner').style.display = 'inline-block';
+  text.textContent = msg;
+}
+function hideStatus(page) {
+  const bar = $(page + 'StatusBar');
+  bar.classList.remove('status-bar--active');
+}
+
+/* ── Upload Handlers ───────────────────────────────────────── */
+function setupUpload(zoneId, inputId, previewId, onFile) {
+  const zone = $(zoneId);
+  const input = $(inputId);
+  const preview = $(previewId);
+
+  zone.addEventListener('click', () => input.click());
+  input.addEventListener('change', e => { if (e.target.files.length) onFile(e.target.files[0]); });
+
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('upload-zone--drag'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('upload-zone--drag'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('upload-zone--drag');
+    const file = e.dataTransfer.files[0];
+    if (file) onFile(file);
+  });
+
+  return { zone, preview };
+}
+
+// ── Auto Upload ─────────────────────────────────────────────
+const autoUpload = setupUpload('autoUploadZone', 'autoFileInput', 'autoPreview', async (file) => {
+  if (!validateFile(file)) return;
+  await handleAutoUpload(file);
+});
+
+async function handleAutoUpload(file) {
+  showStatus('auto', 'loading', 'Agent analyzing image...');
+  $('autoResults').classList.remove('results-section--active');
+
+  try {
+    // For auto mode, use the original /api/segment for simplicity (single request)
+    const fd = new FormData(); fd.append('file', file);
+    const res = await fetch('/api/segment', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok || data.task?.status === 'error') {
+      throw new Error(data.task?.error || 'Segmentation failed');
+    }
+    hideStatus('auto');
+    renderResults(data, 'autoResults');
+    autoUpload.zone.classList.add('upload-zone--has-file');
+  } catch (err) {
+    showStatus('auto', 'error', 'Error: ' + err.message);
+    showToast(err.message, 'error');
+  }
+}
+
+// ── Prompt Upload ───────────────────────────────────────────
+const promptUpload = setupUpload('promptUploadZone', 'promptFileInput', 'promptPreview', async (file) => {
+  if (!validateFile(file)) return;
+  await handlePromptUpload(file);
+});
+
+async function handlePromptUpload(file) {
+  try {
+    const data = await API.upload(file);
+    state.sessionId = data.session_id;
+    state.imageUrl = data.image_url;
+    state.imageWidth = data.width;
+    state.imageHeight = data.height;
+    state.points = [];
+    state.results = null;
+    $('promptResults').classList.remove('results-section--active');
+
+    $('promptWorkspace').style.display = 'block';
+    promptUpload.zone.classList.add('upload-zone--has-file');
+    promptUpload.preview.src = data.image_url;
+    promptUpload.preview.style.display = 'inline-block';
+
+    initPromptCanvas();
+    updatePointsPanel();
+    updatePromptRunBtn();
+    showToast('Image loaded. Click to place points.', 'info');
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+// ── Box Upload ──────────────────────────────────────────────
+const boxUpload = setupUpload('boxUploadZone', 'boxFileInput', 'boxPreview', async (file) => {
+  if (!validateFile(file)) return;
+  await handleBoxUpload(file);
+});
+
+async function handleBoxUpload(file) {
+  try {
+    const data = await API.upload(file);
+    state.sessionId = data.session_id;
+    state.imageUrl = data.image_url;
+    state.imageWidth = data.width;
+    state.imageHeight = data.height;
+    state.box = null;
+    state.results = null;
+    $('boxResults').classList.remove('results-section--active');
+
+    $('boxWorkspace').style.display = 'block';
+    boxUpload.zone.classList.add('upload-zone--has-file');
+    boxUpload.preview.src = data.image_url;
+    boxUpload.preview.style.display = 'inline-block';
+
+    initBoxCanvas();
+    updateBoxRunBtn();
+    showToast('Image loaded. Draw a box or enter coordinates.', 'info');
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+// ── Validation ──────────────────────────────────────────────
+function validateFile(file) {
+  if (!file.type.startsWith('image/')) { showToast('Please upload an image file.', 'error'); return false; }
+  if (file.size > 20 * 1024 * 1024) { showToast('File too large. Max 20MB.', 'error'); return false; }
+  return true;
+}
+
+/* ── Config Panel (Auto) ──────────────────────────────────── */
+function toggleConfig() {
+  const panel = $('configPanel');
+  const toggle = $('configToggle');
+  const isOpen = panel.classList.toggle('config-panel--open');
+  toggle.classList.toggle('config-toggle--open', isOpen);
+}
+
+function syncConfigVal(sliderId, valId) {
+  $(valId).textContent = $(sliderId).value;
+}
+
+/* ── Prompt Canvas ─────────────────────────────────────────── */
+function initPromptCanvas() {
+  const wrapper = $('promptCanvasWrapper');
+  const canvas = $('promptCanvas');
+  const img = new Image();
+
+  img.onload = () => {
+    const maxW = wrapper.clientWidth;
+    const maxH = 520;
+    const scale = Math.min(maxW / img.naturalWidth, maxH / img.naturalHeight, 1);
+    canvas.width = img.naturalWidth * scale;
+    canvas.height = img.naturalHeight * scale;
+    canvas._img = img;
+    canvas._scale = scale;
+    canvas._offsetX = 0;
+    canvas._offsetY = 0;
+    renderPromptCanvas();
+  };
+  img.src = state.imageUrl;
+
+  canvas.onclick = e => {
+    const pt = screenToImage(canvas, e.offsetX, e.offsetY);
+    if (!pt) return;
+    if (state.promptTool === 'add-fg') {
+      state.points.push({ x: pt.x, y: pt.y, label: 1 });
+    } else if (state.promptTool === 'add-bg') {
+      state.points.push({ x: pt.x, y: pt.y, label: 0 });
+    } else if (state.promptTool === 'remove') {
+      const idx = findNearestPoint(canvas, e.offsetX, e.offsetY);
+      if (idx >= 0) { state.points.splice(idx, 1); }
+    }
+    renderPromptCanvas();
+    updatePointsPanel();
+    updatePromptRunBtn();
+  };
+}
+
+function screenToImage(canvas, sx, sy) {
+  const img = canvas._img;
+  const scale = canvas._scale;
+  if (!img) return null;
+  const ix = Math.round(sx / scale);
+  const iy = Math.round(sy / scale);
+  if (ix < 0 || iy < 0 || ix >= img.naturalWidth || iy >= img.naturalHeight) return null;
+  return { x: ix, y: iy };
+}
+
+function imageToScreen(canvas, ix, iy) {
+  const scale = canvas._scale;
+  return { x: ix * scale, y: iy * scale };
+}
+
+function findNearestPoint(canvas, sx, sy) {
+  let minDist = Infinity, minIdx = -1;
+  state.points.forEach((p, i) => {
+    const s = imageToScreen(canvas, p.x, p.y);
+    const d = Math.hypot(s.x - sx, s.y - sy);
+    if (d < 16 && d < minDist) { minDist = d; minIdx = i; }
+  });
+  return minIdx;
+}
+
+function renderPromptCanvas() {
+  const canvas = $('promptCanvas');
+  const ctx = canvas.getContext('2d');
+  const img = canvas._img;
+  if (!img) return;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+  state.points.forEach((p, i) => {
+    const s = imageToScreen(canvas, p.x, p.y);
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, 7, 0, Math.PI * 2);
+    ctx.fillStyle = p.label === 1 ? '#22c55e' : '#ef4444';
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 10px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(i + 1, s.x, s.y - 11);
+  });
+}
+
+function setPromptTool(tool) {
+  state.promptTool = tool;
+  document.querySelectorAll('#page-prompt .tool-btn').forEach(b => {
+    b.classList.toggle('tool-btn--active', b.dataset.tool === tool);
+  });
+}
+
+function clearPromptPoints() {
+  state.points = [];
+  renderPromptCanvas();
+  updatePointsPanel();
+  updatePromptRunBtn();
+}
+
+function updatePointsPanel() {
+  $('pointsCount').textContent = state.points.length;
+  const list = $('pointsList');
+  if (state.points.length === 0) {
+    list.innerHTML = '<div class="points-list__empty">Click on the image to add segmentation points</div>';
+    return;
+  }
+  list.innerHTML = state.points.map((p, i) => `
+    <div class="point-row">
+      <span class="point-row__index">#${i + 1}</span>
+      <span class="point-row__coords">(${p.x}, ${p.y})</span>
+      <span class="point-row__label ${p.label === 1 ? 'point-row__label--fg' : 'point-row__label--bg'}">${p.label === 1 ? 'FG' : 'BG'}</span>
+      <button class="point-row__remove" onclick="removePoint(${i})" title="Remove">&times;</button>
+    </div>
+  `).join('');
+}
+
+function removePoint(idx) {
+  state.points.splice(idx, 1);
+  renderPromptCanvas();
+  updatePointsPanel();
+  updatePromptRunBtn();
+}
+
+function updatePromptRunBtn() {
+  const btn = $('runPromptBtn');
+  const hint = $('promptHint');
+  btn.disabled = state.points.length === 0;
+  hint.textContent = state.points.length === 0 ? 'Add at least one point to begin' : `${state.points.length} point(s) placed — ready to segment`;
+}
+
+async function runPromptSegment() {
+  if (state.points.length === 0 || state.isProcessing) return;
+  state.isProcessing = true;
+  showStatus('prompt', 'loading', 'Running segmentation...');
+  $('promptResults').classList.remove('results-section--active');
+
+  try {
+    const points = state.points.map(p => [p.x, p.y]);
+    const labels = state.points.map(p => p.label);
+    const data = await API.segmentPrompt(state.sessionId, points, labels);
+    hideStatus('prompt');
+    renderResults(data, 'promptResults');
+    showToast(`Done — ${data.total_objects} object(s) found`, 'success');
+  } catch (err) {
+    showStatus('prompt', 'error', 'Error: ' + err.message);
+    showToast(err.message, 'error');
+  }
+  state.isProcessing = false;
+}
+
+/* ── Box Canvas ────────────────────────────────────────────── */
+function initBoxCanvas() {
+  const wrapper = $('boxCanvasWrapper');
+  const canvas = $('boxCanvas');
+  const img = new Image();
+
+  img.onload = () => {
+    const maxW = wrapper.clientWidth;
+    const maxH = 520;
+    const scale = Math.min(maxW / img.naturalWidth, maxH / img.naturalHeight, 1);
+    canvas.width = img.naturalWidth * scale;
+    canvas.height = img.naturalHeight * scale;
+    canvas._img = img;
+    canvas._scale = scale;
+    renderBoxCanvas();
+  };
+  img.src = state.imageUrl;
+
+  canvas.onmousedown = e => {
+    if (state.boxTool !== 'draw') return;
+    const pt = screenToImage(canvas, e.offsetX, e.offsetY);
+    if (!pt) return;
+    state.isDrawing = true;
+    state.drawStart = pt;
+  };
+
+  canvas.onmousemove = e => {
+    if (!state.isDrawing) return;
+    const pt = screenToImage(canvas, e.offsetX, e.offsetY);
+    if (!pt) return;
+    state.box = {
+      x1: Math.min(state.drawStart.x, pt.x),
+      y1: Math.min(state.drawStart.y, pt.y),
+      x2: Math.max(state.drawStart.x, pt.x),
+      y2: Math.max(state.drawStart.y, pt.y),
+    };
+    renderBoxCanvas();
+  };
+
+  canvas.onmouseup = e => {
+    if (!state.isDrawing) return;
+    state.isDrawing = false;
+    const pt = screenToImage(canvas, e.offsetX, e.offsetY);
+    if (!pt || !state.drawStart) return;
+
+    const x1 = Math.min(state.drawStart.x, pt.x);
+    const y1 = Math.min(state.drawStart.y, pt.y);
+    const x2 = Math.max(state.drawStart.x, pt.x);
+    const y2 = Math.max(state.drawStart.y, pt.y);
+    const w = x2 - x1, h = y2 - y1;
+
+    if (w < 10 || h < 10) {
+      state.box = null;
+      showToast('Box too small. Minimum 10×10 pixels.', 'error');
+    } else {
+      state.box = { x1, y1, x2, y2 };
+      $('boxX1').value = x1; $('boxY1').value = y1;
+      $('boxX2').value = x2; $('boxY2').value = y2;
+    }
+    state.drawStart = null;
+    renderBoxCanvas();
+    updateBoxRunBtn();
+  };
+
+  canvas.onmouseleave = () => {
+    if (state.isDrawing) {
+      state.isDrawing = false;
+      state.drawStart = null;
+      renderBoxCanvas();
+      updateBoxRunBtn();
+    }
+  };
+}
+
+function renderBoxCanvas() {
+  const canvas = $('boxCanvas');
+  const ctx = canvas.getContext('2d');
+  const img = canvas._img;
+  if (!img) return;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+  if (state.box) {
+    const scale = canvas._scale;
+    const { x1, y1, x2, y2 } = state.box;
+    ctx.strokeStyle = '#7c5cfc';
+    ctx.lineWidth = 2.5;
+    ctx.setLineDash([8, 4]);
+    ctx.strokeRect(x1 * scale, y1 * scale, (x2 - x1) * scale, (y2 - y1) * scale);
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(124,92,252,0.15)';
+    ctx.fillRect(x1 * scale, y1 * scale, (x2 - x1) * scale, (y2 - y1) * scale);
+
+    // Corner handles
+    [[x1, y1], [x2, y1], [x1, y2], [x2, y2]].forEach(([cx, cy]) => {
+      ctx.fillStyle = '#7c5cfc';
+      ctx.fillRect(cx * scale - 5, cy * scale - 5, 10, 10);
+    });
+  }
+}
+
+function setBoxTool(tool) {
+  state.boxTool = tool;
+  document.querySelectorAll('#page-box .tool-btn').forEach(b => {
+    b.classList.toggle('tool-btn--active', b.dataset.tool === tool);
+  });
+}
+
+function clearBox() {
+  state.box = null;
+  $('boxX1').value = ''; $('boxY1').value = '';
+  $('boxX2').value = ''; $('boxY2').value = '';
+  renderBoxCanvas();
+  updateBoxRunBtn();
+}
+
+function applyBoxCoords() {
+  const x1 = parseInt($('boxX1').value);
+  const y1 = parseInt($('boxY1').value);
+  const x2 = parseInt($('boxX2').value);
+  const y2 = parseInt($('boxY2').value);
+
+  if ([x1, y1, x2, y2].some(isNaN)) { showToast('All coordinates must be numbers.', 'error'); return; }
+  if (x2 <= x1 || y2 <= y1) { showToast('X2 must be > X1 and Y2 must be > Y1.', 'error'); return; }
+  if (x1 < 0 || y1 < 0 || x2 > state.imageWidth || y2 > state.imageHeight) {
+    showToast('Coordinates out of image bounds.', 'error'); return;
+  }
+
+  state.box = { x1, y1, x2, y2 };
+  renderBoxCanvas();
+  updateBoxRunBtn();
+}
+
+function updateBoxRunBtn() {
+  const btn = $('runBoxBtn');
+  const hint = $('boxHint');
+  btn.disabled = !state.box;
+  hint.textContent = state.box
+    ? `Box: (${state.box.x1}, ${state.box.y1}) → (${state.box.x2}, ${state.box.y2})`
+    : 'Draw a box or enter coordinates to begin';
+}
+
+async function runBoxSegment() {
+  if (!state.box || state.isProcessing) return;
+  state.isProcessing = true;
+  showStatus('box', 'loading', 'Running segmentation...');
+  $('boxResults').classList.remove('results-section--active');
+
+  try {
+    const box = [state.box.x1, state.box.y1, state.box.x2, state.box.y2];
+    const data = await API.segmentBox(state.sessionId, box);
+    hideStatus('box');
+    renderResults(data, 'boxResults');
+    showToast(`Done — ${data.total_objects} object(s) found`, 'success');
+  } catch (err) {
+    showStatus('box', 'error', 'Error: ' + err.message);
+    showToast(err.message, 'error');
+  }
+  state.isProcessing = false;
+}
+
+/* ── Results Renderer ──────────────────────────────────────── */
+function renderResults(data, containerId) {
+  const container = $(containerId);
+  const total = data.total_objects || 0;
+  const elapsed = data.task?.elapsed_seconds || 0;
+  const imgW = data.image?.width || 0;
+  const imgH = data.image?.height || 0;
+
+  container.innerHTML = `
+    <div class="stats-bar glass-card">
+      <div class="stat-item">
+        <span class="stat-item__label">Objects Found</span>
+        <span class="stat-item__value">${total}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-item__label">Processing Time</span>
+        <span class="stat-item__value">${elapsed.toFixed(1)}s</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-item__label">Image Size</span>
+        <span class="stat-item__value" style="font-size:0.95rem">${imgW} × ${imgH}</span>
+      </div>
+    </div>
+
+    ${data.overlay_url ? `
+    <div class="overlay-card glass-card">
+      <img src="${data.overlay_url}" alt="Segmentation Overlay" loading="lazy">
+    </div>` : ''}
+
+    <h3 class="section-label" style="margin:24px 0 14px">Detected Objects</h3>
+    <div class="object-grid">
+      ${data.objects.map((obj, i) => {
+        const scoreColor = obj.score >= 0.9 ? 'var(--success)' : obj.score >= 0.7 ? 'var(--warning)' : 'var(--danger)';
+        return `
+          <div class="object-card glass-card" style="animation: fadeInUp 300ms var(--ease-out-expo) ${i * 50}ms both"
+               onclick="openModal('${obj.mask_url}', 'Object #${obj.id} — Mask')">
+            <div class="object-card__preview">
+              <img src="${obj.crop_url}" loading="lazy" alt="Object ${obj.id}"
+                   onclick="event.stopPropagation();openModal('${obj.crop_url}', 'Object #${obj.id} — Crop')">
+            </div>
+            <div class="object-card__header">
+              <span class="object-card__id">Object #${obj.id}</span>
+              <span class="object-card__score" style="color:${scoreColor}">${obj.score.toFixed(3)}</span>
+            </div>
+            <div class="object-card__meta">
+              <span>${obj.bbox.w}×${obj.bbox.h}</span>
+              <span>@(${obj.bbox.x}, ${obj.bbox.y})</span>
+              <span>${(obj.area || 0).toLocaleString()}px²</span>
+            </div>
+          </div>`;
+      }).join('')}
+    </div>
+  `;
+
+  container.classList.add('results-section--active');
+  container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ── Modal ─────────────────────────────────────────────────── */
+function openModal(url, caption) {
+  $('modalImg').src = url;
+  $('modalCaption').textContent = caption || '';
+  $('modal').classList.add('modal-overlay--active');
+}
+
+$('modalClose').addEventListener('click', () => $('modal').classList.remove('modal-overlay--active'));
+$('modal').addEventListener('click', e => {
+  if (e.target === $('modal')) $('modal').classList.remove('modal-overlay--active');
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    $('modal').classList.remove('modal-overlay--active');
+  }
+  // Keyboard shortcuts for prompt mode
+  if (state.currentPage === 'prompt') {
+    if (e.key === 'f' || e.key === 'F') setPromptTool('add-fg');
+    if (e.key === 'b' || e.key === 'B') setPromptTool('add-bg');
+  }
+});
+
+/* ── Health Polling ────────────────────────────────────────── */
+async function pollHealth() {
+  try {
+    const data = await API.health();
+    state.modelReady = data.status === 'ok';
+    const dot = $('healthDot');
+    const text = $('healthText');
+
+    dot.classList.remove('health-dot--loading', 'health-dot--error');
+    if (state.modelReady) {
+      text.textContent = `Model Ready · ${data.model?.model_type || 'vit_b'}`;
+    } else {
+      dot.classList.add('health-dot--loading');
+      text.textContent = 'Loading model...';
+    }
+  } catch {
+    const dot = $('healthDot');
+    dot.classList.add('health-dot--error');
+    $('healthText').textContent = 'Server offline';
+  }
+}
+
+/* ── Init ──────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  handleRoute();
+  pollHealth();
+  setInterval(pollHealth, 15000);
+});
+</script>
+</body>
+</html>

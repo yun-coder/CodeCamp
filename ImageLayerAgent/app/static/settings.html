@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ImageLayerAgent 设置</title>
+    <link rel="stylesheet" href="/static/styles.css?v=comfort-20260605b" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="sidebar">
+        <a class="brand" href="/" aria-label="ImageLayerAgent 工作台">
+          <span class="brand-mark">IL</span>
+          <span class="brand-copy">
+            <strong>ImageLayer</strong>
+            <small>Agent</small>
+          </span>
+        </a>
+        <nav class="side-nav" aria-label="主菜单">
+          <a class="side-link" href="/">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5v-13Z" />
+              <path d="M8 8h8M8 12h5M8 16h7" />
+            </svg>
+            <span>工作台</span>
+          </a>
+        </nav>
+        <a class="settings-icon-link active" href="/settings" aria-label="设置" aria-current="page">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5Z" />
+            <path d="M19.4 15a1.8 1.8 0 0 0 .36 1.98l.05.05a2.1 2.1 0 0 1-2.97 2.97l-.05-.05a1.8 1.8 0 0 0-1.98-.36 1.8 1.8 0 0 0-1.1 1.66V21a2.1 2.1 0 0 1-4.2 0v-.08a1.8 1.8 0 0 0-1.1-1.66 1.8 1.8 0 0 0-1.98.36l-.05.05a2.1 2.1 0 0 1-2.97-2.97l.05-.05A1.8 1.8 0 0 0 3.8 15a1.8 1.8 0 0 0-1.66-1.1H2a2.1 2.1 0 0 1 0-4.2h.08A1.8 1.8 0 0 0 3.74 8.6a1.8 1.8 0 0 0-.36-1.98l-.05-.05A2.1 2.1 0 0 1 6.3 3.6l.05.05a1.8 1.8 0 0 0 1.98.36A1.8 1.8 0 0 0 9.43 2.35V2a2.1 2.1 0 0 1 4.2 0v.08a1.8 1.8 0 0 0 1.1 1.66 1.8 1.8 0 0 0 1.98-.36l.05-.05a2.1 2.1 0 0 1 2.97 2.97l-.05.05a1.8 1.8 0 0 0-.36 1.98 1.8 1.8 0 0 0 1.66 1.1H21a2.1 2.1 0 0 1 0 4.2h-.08A1.8 1.8 0 0 0 19.4 15Z" />
+          </svg>
+        </a>
+      </aside>
+
+      <section class="main-pane settings-main">
+        <header class="page-header settings-header">
+          <div>
+            <p class="eyebrow">Integrations</p>
+            <h1>设置</h1>
+            <p>集中配置 OCR、Agent、视觉规划和图片编辑模型。</p>
+          </div>
+        </header>
+
+        <section class="settings-page">
+          <form id="settingsForm" class="settings-form">
+            <section class="settings-section">
+              <h2>OCR</h2>
+              <label>
+                <span>Provider</span>
+                <select name="ocr_provider">
+                  <option value="paddleocr_cloud">PaddleOCR Cloud API</option>
+                  <option value="none">None</option>
+                </select>
+              </label>
+            </section>
+
+            <section class="settings-section">
+              <h2>PaddleOCR Cloud API</h2>
+              <label>
+                <span>Access Token</span>
+                <input name="paddleocr_access_token" type="password" autocomplete="off" />
+              </label>
+              <label class="inline-check">
+                <input name="clear_paddleocr_access_token" type="checkbox" />
+                <span>清空已保存 Token</span>
+              </label>
+              <label>
+                <span>Base URL</span>
+                <input name="paddleocr_base_url" type="url" />
+              </label>
+              <label>
+                <span>Model</span>
+                <input name="paddleocr_model" />
+              </label>
+              <div class="split">
+                <label>
+                  <span>Request Timeout</span>
+                  <input name="paddleocr_request_timeout" type="number" min="1" step="1" />
+                </label>
+                <label>
+                  <span>Poll Timeout</span>
+                  <input name="paddleocr_poll_timeout" type="number" min="1" step="1" />
+                </label>
+              </div>
+              <label class="inline-check">
+                <input name="paddleocr_use_doc_orientation_classify" type="checkbox" />
+                <span>useDocOrientationClassify</span>
+              </label>
+              <label class="inline-check">
+                <input name="paddleocr_use_doc_unwarping" type="checkbox" />
+                <span>useDocUnwarping</span>
+              </label>
+              <label class="inline-check">
+                <input name="paddleocr_use_chart_recognition" type="checkbox" />
+                <span>useChartRecognition</span>
+              </label>
+              <label>
+                <span>OCR 提示词</span>
+                <textarea name="paddleocr_prompt" rows="4" placeholder="可选。留空时使用电商海报文字识别默认提示词。"></textarea>
+              </label>
+            </section>
+
+            <section class="settings-section">
+              <h2>小画 Agent / 视觉规划</h2>
+              <label>
+                <span>API Key</span>
+                <input name="openai_api_key" type="password" autocomplete="off" />
+              </label>
+              <label class="inline-check">
+                <input name="clear_openai_api_key" type="checkbox" />
+                <span>清空已保存 API Key</span>
+              </label>
+              <label>
+                <span>Base URL</span>
+                <input name="openai_base_url" type="url" />
+              </label>
+              <div class="split">
+                <label>
+                  <span>Agent Model</span>
+                  <input name="openai_model" />
+                </label>
+                <label>
+                  <span>API Mode</span>
+                  <select name="openai_api_mode">
+                    <option value="responses">Responses API</option>
+                    <option value="chat_completions">Chat Completions</option>
+                    <option value="auto">Auto fallback</option>
+                  </select>
+                </label>
+              </div>
+              <label>
+                <span>Request Timeout</span>
+                <input name="openai_request_timeout" type="number" min="1" step="1" />
+              </label>
+              <label class="inline-check">
+                <input name="openai_vision_plan_enabled" type="checkbox" />
+                <span>启用视觉规划模型</span>
+              </label>
+              <label>
+                <span>Vision Plan Model</span>
+                <input name="openai_vision_model" placeholder="留空则使用 Agent Model" />
+              </label>
+            </section>
+
+            <section class="settings-section">
+              <h2>图片编辑模型</h2>
+              <label class="inline-check">
+                <input name="openai_image_edit_enabled" type="checkbox" />
+                <span>启用最终图片融合</span>
+              </label>
+              <label>
+                <span>Image Edit Provider</span>
+                <select name="image_edit_provider">
+                  <option value="openai_images">OpenAI Images API</option>
+                  <option value="custom_http">自定义 HTTP 图片模型</option>
+                  <option value="none">None</option>
+                </select>
+              </label>
+              <div class="split">
+                <label>
+                  <span>OpenAI Image Model</span>
+                  <input name="openai_image_model" />
+                </label>
+                <label>
+                  <span>OpenAI Image Quality</span>
+                  <select name="openai_image_quality">
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="auto">Auto</option>
+                  </select>
+                </label>
+              </div>
+              <label>
+                <span>Custom Endpoint</span>
+                <input name="custom_image_edit_endpoint" type="url" placeholder="例如你自己的 Flux/ComfyUI/云模型网关" />
+              </label>
+              <label>
+                <span>Custom API Key</span>
+                <input name="custom_image_edit_api_key" type="password" autocomplete="off" />
+              </label>
+              <label class="inline-check">
+                <input name="clear_custom_image_edit_api_key" type="checkbox" />
+                <span>清空已保存 Custom API Key</span>
+              </label>
+              <label>
+                <span>Custom Model</span>
+                <input name="custom_image_edit_model" placeholder="可选，由自定义服务决定" />
+              </label>
+            </section>
+
+            <section class="settings-section">
+              <h2>SAM2 / 备用端点</h2>
+              <label class="inline-check">
+                <input name="sam2_enabled" type="checkbox" />
+                <span>启用 SAM2</span>
+              </label>
+              <label>
+                <span>Model Config</span>
+                <input name="sam2_model_cfg" />
+              </label>
+              <label>
+                <span>Checkpoint</span>
+                <input name="sam2_checkpoint" />
+              </label>
+              <label>
+                <span>Qwen VL Endpoint</span>
+                <input name="qwen_vl_endpoint" />
+              </label>
+              <label>
+                <span>FLUX Kontext Endpoint</span>
+                <input name="flux_kontext_endpoint" />
+              </label>
+            </section>
+
+            <div class="settings-actions">
+              <button id="saveSettingsButton" type="submit">保存设置</button>
+              <span id="settingsStatus" class="settings-status"></span>
+            </div>
+          </form>
+        </section>
+      </section>
+    </main>
+    <script src="/static/settings.js"></script>
+    <script src="/static/agent-chat.js"></script>
+  </body>
+</html>
