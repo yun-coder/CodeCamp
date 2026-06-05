@@ -1,0 +1,11 @@
+{
+  "name": "my-vue-skill",
+  "version": "1.0.0",
+  "description": "自定义 Vue 3 组件生成技能",
+  "category": "Vue 3",
+  "tags": ["vue3", "composition-api", "typescript"],
+  "author": "yunliang",
+  "homepage": "https://github.com/yun-coder",
+  "prompt": "prompt.md",
+  "examples": ["examples/*.vue"]
+}

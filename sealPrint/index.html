@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>打印模板设计器 - Vue3 + Ant Design Vue</title>
+  <link rel="stylesheet" href="./src/components/print/css/hiprint.css" />
+  <link rel="stylesheet" href="./src/components/print/css/print-lock.css" />
+</head>
+<body>
+<div id="app"></div>
+
+<!-- 1. jQuery 核心库（必须最先加载） - 使用本地版本确保一致性 -->
+<script src="./src/components/plugins/jq-3.31.js"></script>
+
+<!-- 2. jQuery UI 完整版（hiprint 拖拽功能依赖 draggable 和 droppable） -->
+<script src="./src/components/plugins/jquery-ui.min.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="./src/components/print/css/jquery-ui.css">
+
+<!-- 3. polyfill（兼容性支持） -->
+<script src="./src/components/plugins/polyfill.min.js"></script>
+
+<!-- 4. hiprint 依赖库 -->
+<script src="./src/components/plugins/jquery.minicolors.min.js"></script>
+<script src="./src/components/plugins/JsBarcode.all.min.js"></script>
+<script src="./src/components/plugins/qrcode.js"></script>
+
+<!-- 5. 确保 jQuery 在全局作用域可用 -->
+<script>
+  // 关键：在全局作用域设置 jQuery 变量，让 hiprint.bundle.js 能正确访问
+  if (typeof window.jQuery === 'undefined') {
+    throw new Error('jQuery 必须在 hiprint 之前加载！');
+  }
+  if (!window.$.fn.draggable || !window.$.fn.droppable) {
+    throw new Error('jQuery UI 必须在 hiprint 之前加载！');
+  }
+
+  // 在全局作用域创建 jQuery 和 $ 变量
+  var jQuery = window.jQuery;
+  var $ = window.$;
+</script>
+
+<!-- 6. hiprint jQuery 插件 -->
+<script src="./src/components/plugins/jquery.hiwprint.js"></script>
+
+<!-- 7. hiprint 主库 -->
+<script src="./src/components/plugins/hiprint.bundle.js"></script>
+
+<!-- 8. 修复 hiprint 内部的 jQuery 引用 -->
+<script>
+  (function() {
+    // 修复 hiprint.PrintElementTypeManager.enableDrag 方法
+    // 确保使用全局 jQuery 实例而不是 hiprint 内部的 jQuery
+    if (window.hiprint && window.hiprint.PrintElementTypeManager) {
+      var originalEnableDrag = window.hiprint.PrintElementTypeManager.enableDrag;
+
+      window.hiprint.PrintElementTypeManager.enableDrag = function(elements) {
+        // 用全局 $ 包装元素，确保 hidraggable 方法可用
+        var $elements = $(elements);
+
+        // 调用原始方法
+        try {
+          return originalEnableDrag.call(this, $elements);
+        } catch (error) {
+          // 降级：使用简化的拖拽配置
+          $elements.hidraggable({
+            revert: true,
+            helper: 'clone',
+            scope: 'hiprint-printElement',
+            moveUnit: 'pt',
+          });
+        }
+      };
+    }
+  })();
+</script>
+
+<!-- 9. 锁定 jQuery 实例，防止被覆盖 -->
+<script>
+  (function() {
+    // 锁定 jQuery 实例，防止模块系统覆盖
+    var lockedJQuery = window.jQuery;
+    var locked$ = window.$;
+
+    // 使用 Object.defineProperty 防止 jQuery 被重新赋值
+    try {
+      Object.defineProperty(window, 'jQuery', {
+        get: function() {
+          return lockedJQuery;
+        },
+        set: function() { /* 阻止赋值 */
+        },
+        configurable: false,
+      });
+
+      Object.defineProperty(window, '$', {
+        get: function() {
+          return locked$;
+        },
+        set: function() { /* 阻止赋值 */
+        },
+        configurable: false,
+      });
+    } catch (e) {
+      console.warn('无法锁定 jQuery 实例:', e);
+    }
+  })();
+</script>
+
+<!-- 10. Vue 应用（type="module" 会自动延迟执行） -->
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
+
