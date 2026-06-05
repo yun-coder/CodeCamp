@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>条形码模板</title>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+</head>
+<body>
+<svg id="barCode"></svg>
+</body>
+<script>
+    const query = new URLSearchParams(window.location.search);
+    const barCodeContent = query.get('content') || "";
+    console.log(barCodeContent);
+    JsBarcode("#barCode", barCodeContent, {
+        format: 'CODE128',
+        displayValue: false,
+        fontSize: 14,
+        lineColor: '#000',
+        width: 2,
+        height: 60
+    })
+</script>
+</html>

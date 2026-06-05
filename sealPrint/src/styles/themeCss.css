@@ -1,0 +1,59 @@
+/*调整全局图片预览工具栏显示*/
+.viewer-reset {
+  display: none;
+}
+.viewer-play {
+  display: none;
+}
+/*调整全局弹框*/
+.ant-modal-content {
+  border-radius: 4px !important;
+  padding: 0 0 12px 0 !important;
+}
+.ant-modal-footer {
+  text-align: center !important;
+}
+.ant-modal-close {
+  top: 12px !important;
+  inset-inline-end: 8px !important;
+}
+.ant-modal-confirm-content {
+  max-width: 100% !important;
+  padding: 0 10px;
+}
+.ant-modal-confirm-btns {
+  text-align: center !important;
+}
+.ant-btn-primary {
+  background-color: #228fff;
+}
+.ant-btn-primary:not(:disabled):active {
+  background-color: #228fff;
+}
+.ant-btn-link {
+  color: #228fff;
+}
+.ant-btn-link:not(:disabled):active {
+  color: #228fff;
+}
+/*调整vxe全局弹框底部按钮*/
+.vxe-modal--footer {
+  padding: 10px 0 !important;
+  border-top: 1px solid #ddd;
+}
+.custom-modal .vxe-modal--footer-left {
+  flex-grow: 0;
+}
+.custom-modal .vxe-modal--footer-right {
+  margin: 0 auto;
+}
+/* 在你的组件或全局样式中添加 */
+.vxe-button.type--button.theme--primary:not(.is--disabled) {
+  --vxe-ui-font-primary-color: #228fff;
+}
+.vxe-modal--body {
+  background-color: #f3f6fa;
+}
+.zoom--minimize .vxe-modal--box{
+  width: 260px !important;
+}

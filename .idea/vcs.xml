@@ -10,17 +10,20 @@
     <mapping directory="$PROJECT_DIR$/RuView" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/agency-agents" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/awesome-ai-apps" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/canvas-printer" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/career-ops" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/components-idea" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/electron-vue-print" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/electron-vue-print2" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/hello-agents" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/html-ppt-skill" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/huobao-drama" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/langfuse" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/learn-gitHub-project" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/local-deep-research" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/my-code-project" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/one-click" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/poly-studio" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/project-helper" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/project-helper/backend/runtime-data/repos/54e6fdc6973d6fbd" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/project-helper/backend/runtime-data/repos/manual-test" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/sealPrint" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/yao-open-prompts" vcs="Git" />
   </component>
 </project>

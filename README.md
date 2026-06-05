@@ -2,7 +2,7 @@
 
 个人学习项目集合 —— 汇集多个 AI、工具、平台类开源项目的学习与实验仓库。
 
-> **最后更新：** 2026-06-05 | **项目总数：** 26 个（17 个有 GitHub + 9 个本地项目）
+> **最后更新：** 2026-06-05 | **项目总数：** 25 个（15 个有 GitHub + 10 个本地项目）
 
 ---
 
@@ -24,14 +24,13 @@
 | **huobao-drama** | AI 短剧自动化生产平台，5 个专用 AI Agent，文生图/TTS/FFmpeg 合成管线 | [chatfire-AI/huobao-drama](https://github.com/chatfire-AI/huobao-drama) |
 | **IDM-VTON** | 基于扩散模型的虚拟试穿系统，将服装合成到人物照片，支持 Gradio Web Demo | [yisol/IDM-VTON](https://github.com/yisol/IDM-VTON) |
 | **ImageLayerAgent** | 电商图片替换工作流，PaddleOCR + 视觉规划模型实现文字保护和区域替换 | *(本地项目)* |
-| **learn-gitHub-project** | 项目学习助手副本（与 project-helper 同仓库），自动克隆分析生成学习报告 | [yun-coder/learn-gitHub-project](https://github.com/yun-coder/learn-gitHub-project) |
+| **learn-gitHub-project** | 项目学习助手副本（与 project-helper 同仓库），自动克隆分析生成学习报告 | *(本地项目)* |
 | **local-deep-research** | 本地化深度研究助手，支持多 LLM 和多检索引擎，注重隐私与安全 | [LearningCircuit/local-deep-research](https://github.com/LearningCircuit/local-deep-research) |
 | **MoneyPrinterTurbo** | AI 一键生成高清短视频，自动完成脚本→配音→字幕→素材→合成全流程（⭐55k） | [harry0703/MoneyPrinterTurbo](https://github.com/harry0703/MoneyPrinterTurbo) |
 | **my-code-project** | zyl-plug-common 工具插件，Vue 3 + Vite，自定义 Skills 示例 | *(本地项目)* |
 | **one-click** | 一键 AI 命令行工具，智能路由到最省钱的模型 | *(本地项目)* |
 | **OpenMAIC** | 多代理互动课堂平台，自动生成课程大纲、幻灯片、测验和互动模拟 | [THU-MAIC/OpenMAIC](https://github.com/THU-MAIC/OpenMAIC) |
 | **poly-studio** | 对话式多模态内容生成平台（图片/视频/3D），FastAPI + LangGraph Agent 编排 | [yun-coder/poly-studio](https://github.com/yun-coder/poly-studio) |
-| **project-helper** | 项目学习助手：输入 GitHub 地址自动克隆、扫描、缓存并生成源码学习报告 | [yun-coder/learn-gitHub-project](https://github.com/yun-coder/learn-gitHub-project) |
 | **RuView** | 基于 WiFi CSI 信号的空间智能平台，无摄像头人体感知、呼吸心率监测 | [ruvnet/RuView](https://github.com/ruvnet/RuView) |
 | **sam-agent-tool** | 基于 Meta SAM 的分割工具，支持 CLI 和 Python SDK，输出结构化 JSON + 可视化图 | *(本地项目)* |
 | **sealPrint** | 印章打印系统，Vue 3 + Vite | *(本地项目)* |
