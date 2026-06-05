@@ -34,17 +34,6 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
 | ViT-L | 1.2GB | [sam_vit_l_0b3195.pth](https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth) |
 | ViT-H (最准) | 2.4GB | [sam_vit_h_4b8939.pth](https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth) |
 
-## 启动 Web 页面
-
-```bash
-cd D:\学习院\sam-agent-tool
-python -m sam_agent_tool web -c sam_vit_b_01ec64.pth --port 8080
-```
-
-打开浏览器访问 **http://localhost:8080**，上传图片即可自动分割。
-
-> 模型加载需要几秒到几十秒（取决于硬件），加载完成后页面即可使用。
-
 ## 使用方式
 
 ### CLI 命令行

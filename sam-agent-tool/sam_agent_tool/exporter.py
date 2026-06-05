@@ -168,7 +168,7 @@ class Exporter:
         path: str,
     ):
         """Save the object cropped from the image with a transparent background."""
-        x, y, w, h = int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
+        x, y, w, h = bbox
         if w <= 0 or h <= 0:
             return
 

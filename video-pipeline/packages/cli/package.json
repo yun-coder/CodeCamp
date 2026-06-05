@@ -1,0 +1,30 @@
+{
+  "name": "@video-pipeline/cli",
+  "version": "0.1.0",
+  "description": "video-pipeline command-line interface",
+  "license": "Apache-2.0",
+  "type": "module",
+  "bin": {
+    "video-pipeline": "./dist/bin.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node -e \"if (process.platform !== 'win32') require('fs').chmodSync('dist/bin.js', 0o755)\"",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "smoke": "node dist/smoke.js",
+    "test": "node --test test/"
+  },
+  "dependencies": {
+    "@video-pipeline/content-graph": "workspace:*",
+    "@video-pipeline/core": "workspace:*",
+    "@video-pipeline/adapter-hyperframes": "workspace:*",
+    "@video-pipeline/project-studio": "workspace:*",
+    "@video-pipeline/runtime": "workspace:*",
+    "cac": "^6.7.14"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}
