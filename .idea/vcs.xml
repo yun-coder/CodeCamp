@@ -2,6 +2,7 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/BuildingAI" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/Hands-On-Large-Language-Models" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/Horizon" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/IDM-VTON" vcs="Git" />
@@ -9,6 +10,7 @@
     <mapping directory="$PROJECT_DIR$/OpenMAIC" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/RuView" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/agency-agents" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/auritalkstudio" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/awesome-ai-apps" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/canvas-printer" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/career-ops" vcs="Git" />
@@ -17,9 +19,11 @@
     <mapping directory="$PROJECT_DIR$/electron-vue-print2" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/hello-agents" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/html-ppt-skill" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/html-video" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/huobao-drama" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/learn-gitHub-project" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/local-deep-research" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/mini-coffee-town" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/my-code-project" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/one-click" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/poly-studio" vcs="Git" />

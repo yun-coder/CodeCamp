@@ -26,6 +26,7 @@
       <excludeFolder url="file://$MODULE_DIR$/sam-agent-tool/outputs" />
       <excludeFolder url="file://$MODULE_DIR$/sam-agent-tool/sam_agent_tool.egg-info" />
       <excludeFolder url="file://$MODULE_DIR$/sam-agent-tool/test_out" />
+      <excludeFolder url="file://$MODULE_DIR$/auritalkstudio/backend/.venv" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
