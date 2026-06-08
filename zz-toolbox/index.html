@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>工具箱</title>
+  <link rel="stylesheet" href="./src/plugins/css/hiprint.css" />
+  <link rel="stylesheet" href="./src/plugins/css/print-lock.css" />
+  <link rel="stylesheet" href="./src/plugins/css/jquery-ui.css" />
+</head>
+<body>
+<div id="app"></div>
+
+<script src="./src/plugins/jq-3.31.js"></script>
+<script src="./src/plugins/jquery-ui.min.js"></script>
+<script src="./src/plugins/polyfill.min.js"></script>
+<script src="./src/plugins/jquery.minicolors.min.js"></script>
+<script src="./src/plugins/JsBarcode.all.min.js"></script>
+<script src="./src/plugins/qrcode.js"></script>
+
+<script>
+  if (typeof window.jQuery === 'undefined') {
+    throw new Error('jQuery 必须在 hiprint 之前加载！');
+  }
+  var jQuery = window.jQuery;
+  var $ = window.$;
+</script>
+
+<script src="./src/plugins/jquery.hiwprint.js"></script>
+<script src="./src/plugins/hiprint.bundle.js"></script>
+
+<script>
+  (function() {
+    if (window.hiprint && window.hiprint.PrintElementTypeManager) {
+      var originalEnableDrag = window.hiprint.PrintElementTypeManager.enableDrag;
+      window.hiprint.PrintElementTypeManager.enableDrag = function(elements) {
+        var $elements = $(elements);
+        try {
+          return originalEnableDrag.call(this, $elements);
+        } catch (error) {
+          $elements.hidraggable({
+            revert: true,
+            helper: 'clone',
+            scope: 'hiprint-printElement',
+            moveUnit: 'pt',
+          });
+        }
+      };
+    }
+  })();
+</script>
+
+<script>
+  (function() {
+    var lockedJQuery = window.jQuery;
+    var locked$ = window.$;
+    try {
+      Object.defineProperty(window, 'jQuery', {
+        get: function() { return lockedJQuery; },
+        set: function() {},
+        configurable: false,
+      });
+      Object.defineProperty(window, '$', {
+        get: function() { return locked$; },
+        set: function() {},
+        configurable: false,
+      });
+    } catch (e) {
+      console.warn('无法锁定 jQuery 实例:', e);
+    }
+  })();
+</script>
+
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
