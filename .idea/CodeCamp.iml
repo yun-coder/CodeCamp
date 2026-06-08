@@ -27,6 +27,13 @@
       <excludeFolder url="file://$MODULE_DIR$/sam-agent-tool/sam_agent_tool.egg-info" />
       <excludeFolder url="file://$MODULE_DIR$/sam-agent-tool/test_out" />
       <excludeFolder url="file://$MODULE_DIR$/auritalkstudio/backend/.venv" />
+      <excludeFolder url="file://$MODULE_DIR$/comicFactory/.html-video" />
+      <excludeFolder url="file://$MODULE_DIR$/comicFactory/packages/adapter-hyperframes/dist" />
+      <excludeFolder url="file://$MODULE_DIR$/comicFactory/packages/cli/dist" />
+      <excludeFolder url="file://$MODULE_DIR$/comicFactory/packages/content-graph/dist" />
+      <excludeFolder url="file://$MODULE_DIR$/comicFactory/packages/core/dist" />
+      <excludeFolder url="file://$MODULE_DIR$/comicFactory/packages/runtime/dist" />
+      <excludeFolder url="file://$MODULE_DIR$/comicFactory/packages/studio-next/dist" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
