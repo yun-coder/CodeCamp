@@ -8,7 +8,6 @@ function ok($msg) { Write-Host "  [OK] $msg" -ForegroundColor Green }
 Write-Host "`n=== Step 1/5: Build Frontend ===`n" -ForegroundColor Cyan
 Push-Location "$Root\frontend"
 npm install | Out-Null
-$env:VITE_API_BASE = ""
 npm run build
 if (-not (Test-Path "dist\index.html")) { throw "Frontend build failed" }
 ok "Frontend built"
