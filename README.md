@@ -13,7 +13,6 @@
 | 项目 | 简介 | 仓库 |
 |------|------|------|
 | **agency-agents** | AI 代理人格库，用 Markdown 定义大量专业代理（工程、设计、营销等），可快速在多工具中复用 | [GitHub](https://github.com/msitarzewski/agency-agents) |
-| **auritalkstudio** | 对话式多模态内容创作平台，LangGraph Agent SSE 流式编排，支持图片/视频/音频/3D/数字人生成 | [GitLab](http://gitlab.zhgcraft.com/yunxinjinyu/auritalkstudio) |
 | **awesome-ai-apps** | 实用 AI 应用示例集合，收录 80+ 个 LLM 应用示例和教程，含 Agents、RAG、MCP 等分类 | [GitHub](https://github.com/Arindam200/awesome-ai-apps) |
 | **BuildingAI** | AI 智能体应用平台，Agent 构建器 + 知识库 RAG + MCP 工具调用 + 模型聚合，支持多租户计费 | [GitHub](https://github.com/BidingCC/BuildingAI) |
 | **career-ops** | AI 驱动的求职/Offer 管理系统，自动评估职位、生成 ATS 优化简历 PDF、批量处理 Offer | [GitHub](https://github.com/santifer/career-ops) |
