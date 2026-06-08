@@ -174,9 +174,10 @@ def get_config() -> dict:
 
 @app.put("/api/config")
 def update_config(cfg: ConfigUpdate) -> dict:
+    import os as _os
     from .config import get_settings
     settings = get_settings()
-    env_path = settings.ROOT_DIR / ".env"
+    env_path = settings.env_file
     lines: list[str] = []
     if env_path.exists():
         lines = env_path.read_text(encoding="utf-8").splitlines()
@@ -189,8 +190,8 @@ def update_config(cfg: ConfigUpdate) -> dict:
     if not found:
         lines.append(f"DEEPSEEK_API_KEY={cfg.deepseek_api_key}")
     env_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    # Invalidate cached settings
-    from .config import get_settings
+    # Apply immediately without restart
+    _os.environ["DEEPSEEK_API_KEY"] = cfg.deepseek_api_key
     get_settings.cache_clear()
     return {"status": "updated"}
 

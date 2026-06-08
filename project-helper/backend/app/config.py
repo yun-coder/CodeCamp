@@ -21,6 +21,15 @@ def env_path(name: str, default: Path) -> Path:
 class Settings:
     app_name: str = "project-helper"
     data_dir: Path = env_path("PROJECT_HELPER_DATA_DIR", ROOT_DIR / "backend" / "runtime-data")
+
+    def __init__(self) -> None:
+        # Load .env from persistent data dir (survives PyInstaller temp extraction)
+        self.data_dir.mkdir(parents=True, exist_ok=True)
+        load_dotenv(self.env_file, override=True)
+
+    @property
+    def env_file(self) -> Path:
+        return self.data_dir / ".env"
     sqlite_path: Path = env_path("PROJECT_HELPER_SQLITE", data_dir / "project_helper.db")
     repo_dir: Path = env_path("PROJECT_HELPER_REPO_DIR", data_dir / "repos")
     deepseek_api_key: str = os.getenv("DEEPSEEK_API_KEY", "")
