@@ -20,6 +20,10 @@ Write-Host "`n=== Step 3/4: Build Backend with PyInstaller ===`n" -ForegroundCol
 Push-Location "$Root\backend"
 pip install -r requirements.txt
 pip install pyinstaller
+# Clean old output to avoid file/directory conflicts
+$outDir = "$Root\build\pyinstaller\backend"
+if (Test-Path $outDir) { Remove-Item -Recurse -Force $outDir }
+if (Test-Path "$Root\build\pyinstaller\backend.exe") { Remove-Item -Force "$Root\build\pyinstaller\backend.exe" }
 pyinstaller backend.spec --clean --distpath "$Root\build\pyinstaller"
 if (-not (Test-Path "$Root\build\pyinstaller\backend\backend.exe")) {
     throw "PyInstaller build failed"
