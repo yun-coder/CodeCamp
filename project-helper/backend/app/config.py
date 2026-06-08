@@ -36,7 +36,7 @@ class Settings:
     repo_dir: Path = env_path("PROJECT_HELPER_REPO_DIR", data_dir / "repos")
     deepseek_api_key: str = os.getenv("DEEPSEEK_API_KEY", "")
     deepseek_base_url: str = os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
-    deepseek_model: str = os.getenv("DEEPSEEK_MODEL", "deepseek-v4")
+    deepseek_model: str = os.getenv("DEEPSEEK_MODEL", "deepseek-v4-flash")
     deepseek_timeout: float = float(os.getenv("DEEPSEEK_TIMEOUT", "180"))
     deepseek_max_retries: int = int(os.getenv("DEEPSEEK_MAX_RETRIES", "1"))
     deepseek_max_tokens: int = int(os.getenv("DEEPSEEK_MAX_TOKENS", "6000"))
