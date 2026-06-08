@@ -117,6 +117,13 @@ def remove_tree(path: Path) -> None:
         shutil.rmtree(path, onerror=onerror)
 
 
+def _git_env() -> dict[str, str]:
+    """Pass SSL verify env so git works inside PyInstaller on Windows."""
+    env = os.environ.copy()
+    env.setdefault("GIT_SSL_NO_VERIFY", "true")
+    return env
+
+
 def run_git(args: list[str], cwd: Path | None = None, timeout: int = 180) -> subprocess.CompletedProcess:
     return subprocess.run(
         args,
@@ -127,6 +134,7 @@ def run_git(args: list[str], cwd: Path | None = None, timeout: int = 180) -> sub
         encoding="utf-8",
         errors="replace",
         timeout=timeout,
+        env=_git_env(),
     )
 
 
@@ -137,6 +145,7 @@ def run_git_bytes(args: list[str], cwd: Path | None = None, timeout: int = 180) 
         check=True,
         capture_output=True,
         timeout=timeout,
+        env=_git_env(),
     ).stdout
 
 
