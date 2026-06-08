@@ -1,0 +1,13 @@
+runtime-data/
+.venv/
+node_modules/
+dist/
+__pycache__/
+.pytest_cache/
+.env
+.env.*
+!.env.example
+.idea
+.uv-cache/
+.uv-python/
+*.log
