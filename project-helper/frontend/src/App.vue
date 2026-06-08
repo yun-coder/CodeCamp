@@ -489,7 +489,6 @@ onMounted(() => {
         </aside>
       </section>
     </main>
-    </main>
 
     <!-- Settings Modal -->
     <Teleport to="body">
