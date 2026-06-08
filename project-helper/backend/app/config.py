@@ -26,6 +26,8 @@ class Settings:
         # Load .env from persistent data dir (survives PyInstaller temp extraction)
         self.data_dir.mkdir(parents=True, exist_ok=True)
         load_dotenv(self.env_file, override=True)
+        # Re-read API key as instance attr — class attr was set at import time before .env loaded
+        self.deepseek_api_key = os.getenv("DEEPSEEK_API_KEY", "")
 
     @property
     def env_file(self) -> Path:
