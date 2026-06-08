@@ -26,8 +26,10 @@ class Settings:
         # Load .env from persistent data dir (survives PyInstaller temp extraction)
         self.data_dir.mkdir(parents=True, exist_ok=True)
         load_dotenv(self.env_file, override=True)
-        # Re-read API key as instance attr — class attr was set at import time before .env loaded
+        # Re-read env after loading data_dir/.env — class attrs were set at import time
         self.deepseek_api_key = os.getenv("DEEPSEEK_API_KEY", "")
+        self.deepseek_model = os.getenv("DEEPSEEK_MODEL", "deepseek-v4-flash")
+        self.deepseek_base_url = os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
 
     @property
     def env_file(self) -> Path:
