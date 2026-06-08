@@ -21,14 +21,12 @@
     ],
     "extraResources": [
       {
-        "from": "../build/pyinstaller",
-        "to": "backend",
-        "filter": ["**/*"]
+        "from": "../build/pyinstaller/backend",
+        "to": "backend"
       },
       {
         "from": "../build/frontend-dist",
-        "to": "frontend",
-        "filter": ["**/*"]
+        "to": "frontend"
       }
     ],
     "win": {
