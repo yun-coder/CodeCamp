@@ -14,11 +14,14 @@ import yaml from 'highlight.js/lib/languages/yaml'
 import {
   Bot,
   BrainCircuit,
+  Check,
   CheckCircle2,
   Clock3,
   Code2,
   Database,
   Download,
+  Eye,
+  EyeOff,
   FolderGit2,
   Loader2,
   MessageSquareText,
@@ -26,6 +29,7 @@ import {
   RefreshCw,
   Search,
   Send,
+  Settings,
   Sparkles,
   TerminalSquare,
   Trash2,
@@ -77,6 +81,11 @@ const question = ref('这个项目的启动入口在哪里？')
 const answer = ref('')
 const chatting = ref(false)
 const error = ref('')
+const showSettings = ref(false)
+const apiKey = ref('')
+const configMsg = ref(null)
+const configLoading = ref(false)
+const showKey = ref(false)
 const reportEl = ref(null)
 const answerEl = ref(null)
 
@@ -307,10 +316,39 @@ async function ask() {
   }
 }
 
+async function loadConfig() {
+  try {
+    const res = await fetch(`${API_BASE}/api/config`)
+    if (res.ok) {
+      const data = await res.json()
+      apiKey.value = data.has_api_key ? '••••••••' : ''
+    }
+  } catch { /* backend may not be ready */ }
+}
+
+async function saveConfig() {
+  configMsg.value = null
+  configLoading.value = true
+  try {
+    const res = await fetch(`${API_BASE}/api/config`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ deepseek_api_key: apiKey.value }),
+    })
+    if (!res.ok) throw new Error('保存失败')
+    configMsg.value = { kind: 'success', text: '已保存。重启应用后生效。' }
+  } catch (err) {
+    configMsg.value = { kind: 'error', text: apiErrorMessage(err) }
+  } finally {
+    configLoading.value = false
+  }
+}
+
 onMounted(() => {
   refreshProjects().catch((err) => {
     error.value = apiErrorMessage(err)
   })
+  loadConfig()
 })
 </script>
 
@@ -346,6 +384,12 @@ onMounted(() => {
             <Trash2 :size="15" />
           </button>
         </div>
+
+        <hr class="sidebar-divider" />
+        <button class="ghost-button" type="button" @click="showSettings = true; loadConfig()">
+          <Settings :size="16" />
+          设置
+        </button>
       </div>
     </aside>
 
@@ -445,5 +489,35 @@ onMounted(() => {
         </aside>
       </section>
     </main>
+    </main>
+
+    <!-- Settings Modal -->
+    <Teleport to="body">
+      <div v-if="showSettings" class="modal-overlay" @click.self="showSettings = false">
+        <div class="modal-panel">
+          <h3><Settings :size="20" /> 设置</h3>
+          <label>
+            DeepSeek API Key
+            <div class="key-row">
+              <input
+                v-model="apiKey"
+                :type="apiKey === '••••••••' || showKey ? 'text' : 'password'"
+                placeholder="sk-..."
+              />
+              <button type="button" class="icon-button" @click="showKey = !showKey">
+                <Eye v-if="!showKey" :size="16" />
+                <EyeOff v-else :size="16" />
+              </button>
+            </div>
+          </label>
+          <button class="primary-button full" type="button" :disabled="configLoading" @click="saveConfig">
+            <Loader2 v-if="configLoading" class="spin" :size="16" />
+            <Check v-else :size="16" />
+            保存
+          </button>
+          <p v-if="configMsg" :class="configMsg.kind">{{ configMsg.text }}</p>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>

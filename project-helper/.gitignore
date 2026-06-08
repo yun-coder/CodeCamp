@@ -11,3 +11,10 @@ __pycache__/
 .uv-cache/
 .uv-python/
 *.log
+
+# Build outputs
+build/
+
+# Electron
+electron/node_modules/
+electron/package-lock.json

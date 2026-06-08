@@ -2,10 +2,13 @@ from __future__ import annotations
 
 from pathlib import Path
 import asyncio
+import os
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 
 from . import database
 from .analyzer import analyze_repository
@@ -14,12 +17,19 @@ from .llm import generate_report, stream_answer
 from .repository import clone_repo, normalize_repo_url, remove_tree, repo_path
 from .schemas import AnalyzeRequest, AnalyzeResponse, ChatRequest
 
+_PORT = int(os.getenv("PROJECT_HELPER_PORT", "8000"))
+_STATIC_DIR = os.getenv("PROJECT_HELPER_STATIC_DIR", "")
 
 app = FastAPI(title="project-helper API", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        f"http://127.0.0.1:{_PORT}",
+        f"http://localhost:{_PORT}",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -147,26 +157,46 @@ async def job_events(job_id: str) -> StreamingResponse:
     )
 
 
-@app.post("/api/projects/{project_id}/chat/stream")
-async def chat_stream(project_id: int, request: ChatRequest) -> StreamingResponse:
-    item = database.find_project(project_id)
-    if not item:
-        raise HTTPException(status_code=404, detail="项目不存在")
-    root = Path(item["local_path"])
-    if not root.exists():
-        raise HTTPException(status_code=404, detail="本地仓库缓存不存在，请重新分析")
+class ConfigUpdate(BaseModel):
+    deepseek_api_key: str
 
-    async def event_stream():
-        chunks: list[str] = []
-        async for chunk in stream_answer(root, request.question, item.get("report_md")):
-            chunks.append(chunk)
-            yield sse({"delta": chunk}, event="token")
-        answer = "".join(chunks)
-        database.save_chat(project_id, request.question, answer)
-        yield sse({"message": "回答完成"}, event="done")
 
-    return StreamingResponse(
-        event_stream(),
-        media_type="text/event-stream",
-        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
-    )
+@app.get("/api/config")
+def get_config() -> dict:
+    from .config import get_settings
+    s = get_settings()
+    return {
+        "has_api_key": bool(s.deepseek_api_key),
+        "deepseek_model": s.deepseek_model,
+        "deepseek_base_url": s.deepseek_base_url,
+    }
+
+
+@app.put("/api/config")
+def update_config(cfg: ConfigUpdate) -> dict:
+    from .config import get_settings
+    settings = get_settings()
+    env_path = settings.ROOT_DIR / ".env"
+    lines: list[str] = []
+    if env_path.exists():
+        lines = env_path.read_text(encoding="utf-8").splitlines()
+    found = False
+    for i, line in enumerate(lines):
+        if line.strip().startswith("DEEPSEEK_API_KEY="):
+            lines[i] = f"DEEPSEEK_API_KEY={cfg.deepseek_api_key}"
+            found = True
+            break
+    if not found:
+        lines.append(f"DEEPSEEK_API_KEY={cfg.deepseek_api_key}")
+    env_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    # Invalidate cached settings
+    from .config import get_settings
+    get_settings.cache_clear()
+    return {"status": "updated"}
+
+
+# Static file serving — MUST be last (catch-all for SPA routing)
+if _STATIC_DIR:
+    _sp = Path(_STATIC_DIR)
+    if _sp.exists() and (_sp / "index.html").exists():
+        app.mount("/", StaticFiles(directory=str(_sp), html=True), name="frontend")

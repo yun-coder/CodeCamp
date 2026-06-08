@@ -1,0 +1,53 @@
+{
+  "name": "project-helper-electron",
+  "version": "1.0.0",
+  "description": "项目学习助手 - AI-powered GitHub project learning tool",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win",
+    "pack": "electron-builder --win --dir"
+  },
+  "build": {
+    "appId": "com.projecthelper.app",
+    "productName": "Project Helper",
+    "directories": {
+      "output": "../build/electron-dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "resources/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "../build/pyinstaller",
+        "to": "backend",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "../build/frontend-dist",
+        "to": "frontend",
+        "filter": ["**/*"]
+      }
+    ],
+    "win": {
+      "target": [{ "target": "nsis", "arch": ["x64"] }],
+      "icon": "resources/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Project Helper",
+      "runAfterFinish": true
+    },
+    "asar": false
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.0"
+  }
+}

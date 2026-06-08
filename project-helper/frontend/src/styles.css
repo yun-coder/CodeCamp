@@ -480,6 +480,91 @@ textarea {
   background: rgba(82, 10, 64, 0.32);
 }
 
+/* --- Settings modal --- */
+.sidebar-divider {
+  margin: 16px 0;
+  border: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--line), transparent);
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(8px);
+}
+
+.modal-panel {
+  width: 420px;
+  max-width: 90vw;
+  padding: 28px;
+  border-radius: 12px;
+  background: var(--panel-strong);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-cyan);
+}
+
+.modal-panel h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  font-size: 18px;
+  color: var(--text);
+}
+
+.modal-panel label {
+  display: block;
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.key-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.key-row input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.key-row input:focus {
+  outline: none;
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.14);
+}
+
+.modal-panel .primary-button.full {
+  width: 100%;
+  justify-content: center;
+}
+
+.modal-panel .success {
+  margin-top: 12px;
+  color: var(--acid);
+  font-size: 13px;
+}
+
+.modal-panel .error {
+  margin-top: 12px;
+  color: var(--magenta);
+  font-size: 13px;
+}
+/* --- Settings modal end --- */
+
 .markdown-body {
   color: #e5edff;
   line-height: 1.75;
