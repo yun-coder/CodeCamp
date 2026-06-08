@@ -31,6 +31,10 @@ a = Analysis(
         'scipy', 'PIL', 'cv2', 'tensorflow', 'torch',
         'jedi', 'IPython', 'jupyter',
         'setuptools', 'pip', 'wheel', 'pkg_resources',
+        # Qt bindings (conflict when multiple present)
+        'PyQt5', 'PyQt6', 'PySide2', 'PySide6', 'qtpy',
+        # Other GUI frameworks
+        'wx', 'traitlets', 'ipykernel', 'zmq',
     ],
     win_no_prefer_redirects=False,
     win_private_assemblies=False,
