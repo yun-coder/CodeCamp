@@ -70,6 +70,8 @@
       <excludeFolder url="file://$MODULE_DIR$/auritalkstudio/backend/logs" />
       <excludeFolder url="file://$MODULE_DIR$/auritalkstudio/backend/storage" />
       <excludeFolder url="file://$MODULE_DIR$/mini-coffee-town/.idea" />
+      <excludeFolder url="file://$MODULE_DIR$/project-helper/backend/build" />
+      <excludeFolder url="file://$MODULE_DIR$/project-helper/build" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
