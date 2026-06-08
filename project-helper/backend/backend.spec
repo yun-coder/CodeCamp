@@ -66,3 +66,15 @@ exe = EXE(
     entitlements_file=None,
     icon='../electron/resources/icon.ico',
 )
+
+# Bundle into directory for Electron extraResources
+coll = COLLECT(
+    exe,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
+    strip=False,
+    upx=True,
+    upx_exclude=[],
+    name='backend',
+)
