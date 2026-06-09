@@ -658,6 +658,96 @@ export async function startStudioServer(ctx: CliContext, port: number): Promise<
         });
       }
 
+      // ====================================================================
+      // Comic book API endpoints (v1)
+      // ====================================================================
+
+      // GET comic book plan
+      const comicPlanMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/comic\/plan$/);
+      if (comicPlanMatch && comicPlanMatch[1] && m === 'GET') {
+        const plan = await ctx.orchestrator.readComicBookPlan(comicPlanMatch[1]);
+        return json(res, 200, { plan });
+      }
+
+      // POST comic book plan (write/update)
+      if (comicPlanMatch && comicPlanMatch[1] && m === 'POST') {
+        const body = await readBody(req);
+        if (!body.plan) return json(res, 400, { error: 'plan is required' });
+        const { project } = await ctx.orchestrator.writeComicBookPlan(
+          comicPlanMatch[1],
+          body.plan as import('@video-pipeline/content-graph').ComicBookPlan,
+        );
+        return json(res, 200, { project, ok: true });
+      }
+
+      // Generate comic story (story brief + character bible) via agent — SSE stream
+      const comicStoryMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/comic\/generate-story$/);
+      if (comicStoryMatch && comicStoryMatch[1] && m === 'POST') {
+        return handleComicGenerateStory(comicStoryMatch[1], req, res, ctx);
+      }
+
+      // Generate comic panels (page plan + panel scripts) via agent — SSE stream
+      const comicPanelsMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/comic\/generate-panels$/);
+      if (comicPanelsMatch && comicPanelsMatch[1] && m === 'POST') {
+        return handleComicGeneratePanels(comicPanelsMatch[1], req, res, ctx);
+      }
+
+      // Generate a single panel image
+      const comicOneImgMatch = url.pathname.match(
+        /^\/api\/projects\/([^/]+)\/comic\/generate-image\/([^/]+)$/,
+      );
+      if (comicOneImgMatch && comicOneImgMatch[1] && comicOneImgMatch[2] && m === 'POST') {
+        return handleComicGenerateImage(
+          comicOneImgMatch[1],
+          comicOneImgMatch[2],
+          req,
+          res,
+          ctx,
+        );
+      }
+
+      // Generate all panel images — SSE stream
+      const comicAllImgMatch = url.pathname.match(
+        /^\/api\/projects\/([^/]+)\/comic\/generate-all-images$/,
+      );
+      if (comicAllImgMatch && comicAllImgMatch[1] && m === 'POST') {
+        return handleComicGenerateAllImages(comicAllImgMatch[1], req, res, ctx);
+      }
+
+      // Get comic preview HTML
+      const comicPreviewMatch = url.pathname.match(
+        /^\/api\/projects\/([^/]+)\/comic\/preview$/,
+      );
+      if (comicPreviewMatch && comicPreviewMatch[1] && m === 'GET') {
+        return handleComicPreview(comicPreviewMatch[1], req, res, ctx);
+      }
+
+      // Export comic as PDF
+      const comicPdfMatch = url.pathname.match(
+        /^\/api\/projects\/([^/]+)\/comic\/export\/pdf$/,
+      );
+      if (comicPdfMatch && comicPdfMatch[1] && m === 'POST') {
+        return handleComicExportPdf(comicPdfMatch[1], req, res, ctx);
+      }
+
+      // Export comic as PNG pages
+      const comicPngMatch = url.pathname.match(
+        /^\/api\/projects\/([^/]+)\/comic\/export\/png$/,
+      );
+      if (comicPngMatch && comicPngMatch[1] && m === 'POST') {
+        return handleComicExportPng(comicPngMatch[1], req, res, ctx);
+      }
+
+      // Export comic as Webtoon long image
+      const comicWtMatch = url.pathname.match(
+        /^\/api\/projects\/([^/]+)\/comic\/export\/webtoon$/,
+      );
+      if (comicWtMatch && comicWtMatch[1] && m === 'POST') {
+        return handleComicExportWebtoon(comicWtMatch[1], req, res, ctx);
+      }
+
+      // ====================================================================
+
       // Messages: GET history (lazy-loads from messages.json on first hit)
       const msgsMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/messages$/);
       if (msgsMatch && msgsMatch[1] && m === 'GET') {
@@ -1157,6 +1247,15 @@ export async function startStudioServer(ctx: CliContext, port: number): Promise<
           }
           res.writeHead(404);
           return res.end('Frame not found');
+        }
+
+        const comicImageMatch = sub.match(/^\/comic\/images\/([^/]+\.png)$/i);
+        if (comicImageMatch && comicImageMatch[1]) {
+          const projectDir = await ctx.projects.ensureDir(projId);
+          const filePath = join(projectDir, 'comic', 'images', basename(comicImageMatch[1]));
+          if (existsSync(filePath) && statSync(filePath).isFile()) {
+            return serveFile(filePath, res);
+          }
         }
 
         const baseDir = project.lastPreviewHtmlPath
@@ -2883,4 +2982,766 @@ async function callAgentSimple(
   });
   await handle.done;
   return buf;
+}
+
+// ===========================================================================
+// Comic book handler functions (v1)
+// ===========================================================================
+
+/**
+ * Build a prompt for the agent to generate a comic-novel image collection brief.
+ */
+function buildComicStoryPrompt(idea: string, style: string, audience: string, language: string, sourceMaterial: string): string {
+  const srcBlock = sourceMaterial
+    ? `\n\n<source-material>\n${sourceMaterial}\n</source-material>`
+    : '';
+  return `You are a professional color comic-novel planner, commercial editor, and character designer. Create a structured plan for a comic novel image collection from the user's idea.
+
+<idea>${idea}</idea>
+<style>${style}</style>
+<audience>${audience}</audience>
+<language>${language}</language>${srcBlock}
+
+Output a JSON object with this exact schema:
+
+\`\`\`json
+{
+  "title": "comic title string",
+  "logline": "one-sentence hook (max 100 chars)",
+  "synopsis": "1-2 paragraph story summary",
+  "characters": [
+    {
+      "id": "char-1",
+      "name": "full name",
+      "role": "protagonist|supporting|antagonist|narrator|background",
+      "personality": "2-3 sentence personality description",
+      "visual": {
+        "description": "detailed visual appearance — face, hair, eyes, build, clothing style, any distinctive features",
+        "palette": ["#hexcolor1", "#hexcolor2", "#hexcolor3"],
+        "negativePrompt": "what NOT to depict (e.g. missing limbs, extra fingers)"
+      }
+    }
+  ]
+}
+\`\`\`
+
+Rules:
+- Create 2-5 characters total (at least one protagonist).
+- Each character MUST have a detailed visual description (at least 40 words) and a palette of 3-4 hex colors.
+- Treat the output as the foundation for a commercially usable color comic book / manga novel picture collection, not a video trailer.
+- Avoid copyrighted franchises, living-artist style imitation, or direct copying of known characters.
+- The title and logline should be compelling and genre-appropriate.
+- Output ONLY valid JSON — no markdown, no explanation.`;
+}
+
+/**
+ * Build a prompt for the agent to generate the image collection shot list.
+ */
+function buildComicScriptPrompt(plan: Record<string, unknown>): string {
+  return `You are a professional manga/comic novel art director. Given a story plan, create a page-by-page image collection plan. Each panel is one generated illustration in the collection; the exported result is a set of still comic novel images, not a video.
+
+<story-plan>
+${JSON.stringify(plan, null, 2)}
+</story-plan>
+
+Output a JSON object with this schema for the "pages" array (keep all other fields from the input):
+
+\`\`\`json
+{
+  "pages": [
+    {
+      "id": "page-1",
+      "order": 1,
+      "title": "optional page title",
+      "layout": "single-splash|two-panel|three-panel|four-panel-grid|manga-grid|webtoon-scroll",
+      "summary": "what happens on this page",
+      "panels": [
+        {
+          "id": "panel-1-1",
+          "pageId": "page-1",
+          "order": 1,
+          "shot": "wide|medium|close-up|extreme-close-up|over-shoulder|establishing|action",
+          "scene": "description of the setting/location",
+          "action": "what is happening in this panel",
+          "characters": ["char-1"],
+          "background": "detailed background description",
+          "mood": "emotional tone of this panel",
+          "imagePrompt": "DETAILED image generation prompt (50-150 words): describe the scene as it should be painted — include composition, lighting, colors, character positions, facial expressions, background details, art style notes. Write in English for the image model.",
+          "lettering": [
+            {
+              "id": "txt-1-1-1",
+              "kind": "speech|thought|caption|sfx",
+              "speakerCharacterId": "char-1",
+              "text": "the dialogue or caption text"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+\`\`\`
+
+Rules:
+- Create exactly the pageCount pages specified in the story plan.
+- Each page should have 2-6 panels (manga-grid and webtoon-scroll layouts can have more).
+- Vary shot types across panels for visual rhythm.
+- Each panel's imagePrompt must be a DETAILED, specific description suitable for an AI image generator. Include: subject, pose, expression, clothing, setting, lighting direction, color scheme, camera angle, art style.
+- Image prompts must ask for clean artwork with NO embedded text, captions, speech bubbles, watermarks, logos, signatures, or UI; lettering is rendered separately as an overlay.
+- Keep every illustration coherent as part of one color comic novel image collection: consistent character faces, costumes, palettes, line treatment, and lighting logic.
+- Each panel should have at least 1 lettering entry (dialogue, thought, or caption).
+- The lettering text should be in the language specified in the story plan.
+- Output ONLY the complete ComicBookPlan JSON (merge with input fields) — no markdown, no explanation.`;
+}
+
+/**
+ * Render a ComicBookPlan into a preview HTML page.
+ */
+async function renderComicPreviewHtml(
+  projectId: string,
+  ctx: CliContext,
+  plan: import('@video-pipeline/content-graph').ComicBookPlan,
+): Promise<string> {
+  const projectDir = await ctx.projects.ensureDir(projectId);
+  const { writeFile, mkdir } = await import('node:fs/promises');
+  const { join } = await import('node:path');
+  const comicDir = join(projectDir, 'comic');
+  await mkdir(comicDir, { recursive: true });
+
+  const pagesHtml = plan.pages
+    .sort((a, b) => a.order - b.order)
+    .map((page) => {
+      const panels = page.panels
+        .sort((a, b) => a.order - b.order)
+        .map((panel) => {
+          const imgHtml = panel.generatedImageAssetId
+            ? `<img src="/preview/${projectId}/comic/images/${panel.generatedImageAssetId}.png" alt="Panel ${panel.order}" />`
+            : `<div class="panel-placeholder"><span>Panel ${panel.order}</span><small>${escapeHtml(panel.imagePrompt.slice(0, 80))}...</small></div>`;
+          const letteringHtml = panel.lettering
+            .map((l) => {
+              const cls = `balloon ${l.kind}`;
+              const placement = l.placement
+                ? `style="left:${(l.placement.x * 100).toFixed(1)}%;top:${(l.placement.y * 100).toFixed(1)}%;width:${(l.placement.width * 100).toFixed(1)}%;height:${(l.placement.height * 100).toFixed(1)}%"`
+                : '';
+              const speaker = l.speakerCharacterId
+                ? plan.characters.find((c) => c.id === l.speakerCharacterId)
+                : null;
+              return `<div class="${cls}" ${placement}><span class="speaker">${speaker ? escapeHtml(speaker.name) : ''}</span><span class="text">${escapeHtml(l.text)}</span></div>`;
+            })
+            .join('');
+          return `<div class="panel panel-${panel.shot}">${imgHtml}${letteringHtml}</div>`;
+        })
+        .join('');
+      return `<section class="page page-${page.layout}" id="${page.id}">
+        ${page.title ? `<h2 class="page-title">${escapeHtml(page.title)}</h2>` : ''}
+        <div class="page-content">${panels}</div>
+        ${page.summary ? `<p class="page-summary">${escapeHtml(page.summary)}</p>` : ''}
+      </section>`;
+    })
+    .join('');
+
+  const styleCss = comicPreviewCss();
+  const html = `<!doctype html>
+<html lang="${plan.language || 'en'}">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${escapeHtml(plan.title)} — Comic Preview</title>
+<style>${styleCss}</style></head>
+<body>
+<header class="comic-header">
+  <h1>${escapeHtml(plan.title)}</h1>
+  <p class="logline">${escapeHtml(plan.logline)}</p>
+  <div class="meta">
+    <span>Style: ${escapeHtml(plan.style)}</span>
+    <span>Pages: ${plan.pages.length}</span>
+    <span>Audience: ${escapeHtml(plan.audience)}</span>
+  </div>
+</header>
+<main class="comic-pages">${pagesHtml}</main>
+<footer class="comic-footer">
+  <p>Generated by ComicFactory</p>
+</footer>
+</body></html>`;
+
+  const htmlPath = join(comicDir, 'preview.html');
+  await writeFile(htmlPath, html, 'utf8');
+  const project = await ctx.orchestrator.load(projectId);
+  project.lastPreviewHtmlPath = htmlPath;
+  await ctx.projects.save(project);
+  return htmlPath;
+}
+
+function comicPreviewCss(): string {
+  return `
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#1a1a2e;color:#e0e0e0;line-height:1.5}
+.comic-header{text-align:center;padding:32px 16px 24px;background:linear-gradient(180deg,#16213e 0%,#1a1a2e 100%);border-bottom:2px solid #e94560}
+.comic-header h1{font-size:2.2rem;color:#fff;margin-bottom:8px;font-family:Georgia,serif}
+.comic-header .logline{font-size:1.1rem;color:#a0a0c0;max-width:600px;margin:0 auto 12px;font-style:italic}
+.comic-header .meta{display:flex;gap:16px;justify-content:center;font-size:.8rem;color:#666}
+.comic-pages{max-width:900px;margin:0 auto;padding:24px 16px}
+.page{margin-bottom:40px;background:#16213e;border-radius:12px;padding:20px;border:1px solid #0f3460}
+.page-title{font-size:1.1rem;color:#e94560;margin-bottom:16px;font-family:Georgia,serif}
+.page-content{display:grid;gap:12px}
+.page-two-panel .page-content{grid-template-columns:1fr 1fr}
+.page-three-panel .page-content{grid-template-columns:1fr 1fr 1fr}
+.page-four-panel-grid .page-content{grid-template-columns:1fr 1fr}
+.page-manga-grid .page-content{grid-template-columns:1fr 1fr 1fr;grid-auto-rows:minmax(120px,auto)}
+.page-webtoon-scroll .page-content{display:flex;flex-direction:column;gap:16px}
+.panel{position:relative;background:#0f3460;border-radius:8px;overflow:hidden;min-height:150px}
+.panel img{width:100%;height:auto;display:block}
+.panel-placeholder{display:grid;place-items:center;min-height:150px;background:linear-gradient(135deg,#0f3460 0%,#1a1a2e 100%);padding:16px;text-align:center}
+.panel-placeholder span{font-size:1.2rem;color:#e94560;font-weight:600}
+.panel-placeholder small{display:block;color:#666;margin-top:4px;font-size:.75rem}
+.balloon{position:absolute;background:rgba(255,255,255,.95);color:#111;border-radius:12px;padding:6px 10px;font-size:.82rem;pointer-events:none;z-index:2}
+.balloon.speech{border-radius:12px 12px 12px 4px}
+.balloon.thought{border-radius:50%;background:rgba(255,255,255,.85);font-style:italic}
+.balloon.caption{position:static;background:rgba(0,0,0,.6);color:#fff;border-radius:4px;font-size:.75rem;margin:4px 0}
+.balloon.sfx{font-size:1.5rem;font-weight:900;color:#e94560;background:transparent;text-transform:uppercase}
+.balloon .speaker{display:block;font-size:.65rem;color:#e94560;font-weight:700;margin-bottom:2px}
+.page-summary{font-size:.8rem;color:#666;margin-top:12px;text-align:center;font-style:italic}
+.comic-footer{text-align:center;padding:20px;color:#444;font-size:.75rem;border-top:1px solid #0f3460}
+@media print{body{background:#fff;color:#000}.page{background:#fff;border:1px solid #ccc;break-inside:avoid}.balloon{background:rgba(255,255,255,.95);color:#000}}
+`;
+}
+
+function escapeHtml(s: string): string {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// --------------- comic handler: generate story ---------------
+
+async function handleComicGenerateStory(
+  projectId: string,
+  req: IncomingMessage,
+  res: ServerResponse,
+  ctx: CliContext,
+): Promise<void> {
+  const body = await readBody(req);
+  const idea = (body.idea as string)?.trim() || (body.prompt as string)?.trim();
+  if (!idea) {
+    return json(res, 400, { error: 'idea is required' });
+  }
+  const style = (body.style as string) || 'american-color';
+  const audience = (body.audience as string) || 'teen';
+  const language = (body.language as string) || body.lang as string || 'zh';
+
+  res.writeHead(200, {
+    'content-type': 'text/event-stream; charset=utf-8',
+    'cache-control': 'no-cache',
+    connection: 'keep-alive',
+  });
+  const sse = (obj: unknown) => {
+    try { if (!res.writableEnded) res.write(`data: ${JSON.stringify(obj)}\n\n`); }
+    catch { /* client gone */ }
+  };
+
+  try {
+    sse({ type: 'story_started', phase: 'story' });
+
+    // Load existing plan for source material
+    const existingPlan = await ctx.orchestrator.readComicBookPlan(projectId);
+    const sourceMaterial = existingPlan ? '' : '';
+
+    // Resolve agent
+    const project = await ctx.orchestrator.load(projectId);
+    let agentDef: import('@video-pipeline/runtime').AgentDef | undefined;
+    if (project.agentId) agentDef = findAgent(project.agentId);
+    if (!agentDef) {
+      const detected = (await detectAll()).find((a) => a.available);
+      if (detected) agentDef = findAgent(detected.id);
+    }
+    if (!agentDef) {
+      sse({ type: 'story_failed', message: 'No agent available — install Claude Code, Cursor Agent, or another supported agent' });
+      res.end();
+      return;
+    }
+
+    const prompt = buildComicStoryPrompt(idea, style, audience, language, sourceMaterial);
+    let buf = '';
+    const handle = spawnAgent({
+      def: agentDef,
+      prompt,
+      context: { cwd: ctx.projectRoot, ...(project.agentModel && { model: project.agentModel }) },
+      onEvent: (ev) => {
+        if (ev.type === 'text') { buf += ev.chunk; sse({ type: 'text', chunk: ev.chunk }); }
+        else if (ev.type === 'error') sse({ type: 'warning', message: ev.message });
+      },
+    });
+    const exit = await handle.done;
+    if (exit.exitCode !== 0 || !buf.trim()) {
+      sse({ type: 'story_failed', message: `Agent exited with code ${exit.exitCode}` });
+      res.end();
+      return;
+    }
+
+    // Parse the JSON result
+    let plan: Record<string, unknown>;
+    try {
+      const json = extractJson(buf);
+      plan = JSON.parse(json) as Record<string, unknown>;
+    } catch {
+      sse({ type: 'story_failed', message: 'Agent returned invalid JSON — please try again' });
+      res.end();
+      return;
+    }
+
+    // Build a ComicBookPlan
+    const comicPlan: import('@video-pipeline/content-graph').ComicBookPlan = {
+      schemaVersion: 1 as const,
+      format: (body.format as import('@video-pipeline/content-graph').ComicFormat) || 'book',
+      style: style as import('@video-pipeline/content-graph').ComicStyle,
+      audience: audience as import('@video-pipeline/content-graph').ComicAudience,
+      title: (plan.title as string) || 'Untitled',
+      logline: (plan.logline as string) || '',
+      synopsis: (plan.synopsis as string) || '',
+      language,
+      pageCount: (body.pageCount as number) || 8,
+      characters: ((plan.characters as Array<Record<string, unknown>>) || []).map((c: Record<string, unknown>, i: number) => ({
+        id: (c.id as string) || `char-${i + 1}`,
+        name: (c.name as string) || `Character ${i + 1}`,
+        role: (c.role as import('@video-pipeline/content-graph').ComicCharacter['role']) || 'supporting',
+        personality: (c.personality as string) || '',
+        visual: {
+          description: ((c.visual as Record<string, unknown>)?.description as string) || '',
+          palette: ((c.visual as Record<string, unknown>)?.palette as string[]) || ['#000000', '#ffffff'],
+          negativePrompt: ((c.visual as Record<string, unknown>)?.negativePrompt as string) || '',
+          referenceAssetIds: ((c.visual as Record<string, unknown>)?.referenceAssetIds as string[]) || [],
+        },
+      })),
+      pages: [],
+      exportTargets: { pdf: true, pngPages: true, webtoonLongImage: true, mp4Trailer: false },
+      safety: {
+        originalCharactersOnly: true,
+        disallowLivingArtistStyleImitation: true,
+        commercialUseIntended: false,
+      },
+    };
+
+    await ctx.orchestrator.writeComicBookPlan(projectId, comicPlan);
+    sse({ type: 'story_done', plan: comicPlan });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    process.stderr.write(`[comic:generate-story] ${msg}\n`);
+    sse({ type: 'story_failed', message: msg });
+  }
+  res.end();
+}
+
+// --------------- comic handler: generate panels ---------------
+
+async function handleComicGeneratePanels(
+  projectId: string,
+  req: IncomingMessage,
+  res: ServerResponse,
+  ctx: CliContext,
+): Promise<void> {
+  const plan = await ctx.orchestrator.readComicBookPlan(projectId);
+  if (!plan) {
+    return json(res, 400, { error: 'No comic book plan exists — generate the story first' });
+  }
+
+  res.writeHead(200, {
+    'content-type': 'text/event-stream; charset=utf-8',
+    'cache-control': 'no-cache',
+    connection: 'keep-alive',
+  });
+  const sse = (obj: unknown) => {
+    try { if (!res.writableEnded) res.write(`data: ${JSON.stringify(obj)}\n\n`); }
+    catch { /* client gone */ }
+  };
+
+  try {
+    sse({ type: 'panels_started', phase: 'panels', pageCount: plan.pageCount });
+
+    const project = await ctx.orchestrator.load(projectId);
+    let agentDef: import('@video-pipeline/runtime').AgentDef | undefined;
+    if (project.agentId) agentDef = findAgent(project.agentId);
+    if (!agentDef) {
+      const detected = (await detectAll()).find((a) => a.available);
+      if (detected) agentDef = findAgent(detected.id);
+    }
+    if (!agentDef) {
+      sse({ type: 'panels_failed', message: 'No agent available' });
+      res.end();
+      return;
+    }
+
+    const prompt = buildComicScriptPrompt(plan as unknown as Record<string, unknown>);
+    let buf = '';
+    const handle = spawnAgent({
+      def: agentDef,
+      prompt,
+      context: { cwd: ctx.projectRoot, ...(project.agentModel && { model: project.agentModel }) },
+      onEvent: (ev) => {
+        if (ev.type === 'text') { buf += ev.chunk; sse({ type: 'text', chunk: ev.chunk }); }
+        else if (ev.type === 'error') sse({ type: 'warning', message: ev.message });
+      },
+    });
+    const exit = await handle.done;
+    if (exit.exitCode !== 0 || !buf.trim()) {
+      sse({ type: 'panels_failed', message: `Agent exited with code ${exit.exitCode}` });
+      res.end();
+      return;
+    }
+
+    let pageData: Record<string, unknown>;
+    try {
+      const json = extractJson(buf);
+      pageData = JSON.parse(json) as Record<string, unknown>;
+    } catch {
+      sse({ type: 'panels_failed', message: 'Agent returned invalid JSON' });
+      res.end();
+      return;
+    }
+
+    const pages = (pageData.pages as Array<Record<string, unknown>>) || [];
+    const updatedPlan = { ...plan, pages: pages as unknown as typeof plan.pages };
+
+    await ctx.orchestrator.writeComicBookPlan(projectId, updatedPlan);
+
+    // Render preview HTML
+    const htmlPath = await renderComicPreviewHtml(projectId, ctx, updatedPlan);
+    const totalPanels = pages.reduce((s: number, p: Record<string, unknown>) => s + ((p.panels as unknown[])?.length || 0), 0);
+    sse({ type: 'panels_done', plan: updatedPlan, totalPanels, previewPath: htmlPath });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    process.stderr.write(`[comic:generate-panels] ${msg}\n`);
+    sse({ type: 'panels_failed', message: msg });
+  }
+  res.end();
+}
+
+// --------------- comic handler: generate single panel image ---------------
+
+async function handleComicGenerateImage(
+  projectId: string,
+  panelId: string,
+  req: IncomingMessage,
+  res: ServerResponse,
+  ctx: CliContext,
+): Promise<void> {
+  const plan = await ctx.orchestrator.readComicBookPlan(projectId);
+  if (!plan) {
+    return json(res, 400, { error: 'No comic book plan' });
+  }
+
+  const panel = plan.pages.flatMap((p) => p.panels).find((p) => p.id === panelId);
+  if (!panel) {
+    return json(res, 404, { error: `Panel ${panelId} not found` });
+  }
+
+  const creds = ctx.mediaConfig.resolveMinimax();
+  if (!creds) {
+    return json(res, 400, { error: 'MiniMax API key not configured — add it in Settings → Audio' });
+  }
+
+  try {
+    const aspectMap: Record<string, '1:1' | '16:9' | '3:4' | '9:16' | '4:3'> = {
+      'book': '3:4',
+      'webtoon': '9:16',
+      'strip': '16:9',
+    };
+    const aspect = aspectMap[plan.format] || '3:4';
+
+    const images = await (await import('@video-pipeline/core')).generateImage({
+      prompt: panel.imagePrompt,
+      negativePrompt: panel.negativePrompt,
+      aspectRatio: aspect,
+      style: plan.style,
+      creds,
+    });
+
+    if (images.length > 0) {
+      const projectDir = await ctx.projects.ensureDir(projectId);
+      const { writeFile, mkdir } = await import('node:fs/promises');
+      const { join } = await import('node:path');
+      const imgDir = join(projectDir, 'comic', 'images');
+      await mkdir(imgDir, { recursive: true });
+
+      for (let i = 0; i < images.length; i++) {
+        const img = images[i]!;
+        const assetId = `comic-${panelId}-${i}`;
+        const imgPath = join(imgDir, `${assetId}.png`);
+        await writeFile(imgPath, img.bytes);
+        panel.generatedImageAssetId = assetId;
+      }
+      await ctx.orchestrator.writeComicBookPlan(projectId, plan);
+    }
+
+    return json(res, 200, { ok: true, panel });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return json(res, 500, { error: msg });
+  }
+}
+
+// --------------- comic handler: generate all panel images (SSE) ---------------
+
+async function handleComicGenerateAllImages(
+  projectId: string,
+  req: IncomingMessage,
+  res: ServerResponse,
+  ctx: CliContext,
+): Promise<void> {
+  const plan = await ctx.orchestrator.readComicBookPlan(projectId);
+  if (!plan) {
+    return json(res, 400, { error: 'No comic book plan' });
+  }
+
+  const creds = ctx.mediaConfig.resolveMinimax();
+  if (!creds) {
+    return json(res, 400, { error: 'MiniMax API key not configured' });
+  }
+
+  res.writeHead(200, {
+    'content-type': 'text/event-stream; charset=utf-8',
+    'cache-control': 'no-cache',
+    connection: 'keep-alive',
+  });
+  const sse = (obj: unknown) => {
+    try { if (!res.writableEnded) res.write(`data: ${JSON.stringify(obj)}\n\n`); }
+    catch { /* client gone */ }
+  };
+
+  try {
+    const panels = plan.pages.flatMap((p) => p.panels).filter((p) => p.imagePrompt?.trim());
+    const total = panels.length;
+    if (total === 0) {
+      sse({ type: 'images_failed', message: 'No panels with image prompts found' });
+      res.end();
+      return;
+    }
+
+    sse({ type: 'images_started', total });
+    const projectDir = await ctx.projects.ensureDir(projectId);
+    const { writeFile, mkdir } = await import('node:fs/promises');
+    const { join } = await import('node:path');
+    const imgDir = join(projectDir, 'comic', 'images');
+    await mkdir(imgDir, { recursive: true });
+
+    const aspectMap: Record<string, '1:1' | '16:9' | '3:4' | '9:16' | '4:3'> = {
+      'book': '3:4', 'webtoon': '9:16', 'strip': '16:9',
+    };
+    const aspect = aspectMap[plan.format] || '3:4';
+
+    for (let i = 0; i < total; i++) {
+      const panel = panels[i]!;
+      sse({ type: 'image_progress', panelId: panel.id, index: i, total, stage: `generating panel ${i + 1}/${total}: ${panel.imagePrompt.slice(0, 60)}...` });
+
+      try {
+        const images = await (await import('@video-pipeline/core')).generateImage({
+          prompt: panel.imagePrompt,
+          negativePrompt: panel.negativePrompt,
+          aspectRatio: aspect,
+          style: plan.style,
+          creds,
+        });
+
+        if (images.length > 0) {
+          const assetId = `comic-${panel.id}-0`;
+          const imgPath = join(imgDir, `${assetId}.png`);
+          await writeFile(imgPath, images[0]!.bytes);
+          panel.generatedImageAssetId = assetId;
+        }
+        sse({ type: 'image_done', panelId: panel.id, index: i, total });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        sse({ type: 'image_error', panelId: panel.id, index: i, total, message: msg });
+      }
+    }
+
+    await ctx.orchestrator.writeComicBookPlan(projectId, plan);
+    await renderComicPreviewHtml(projectId, ctx, plan);
+    sse({ type: 'images_all_done', plan, totalGenerated: panels.filter((p) => p.generatedImageAssetId).length, total });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    process.stderr.write(`[comic:generate-all-images] ${msg}\n`);
+    sse({ type: 'images_failed', message: msg });
+  }
+  res.end();
+}
+
+// --------------- comic handler: preview ---------------
+
+async function handleComicPreview(
+  projectId: string,
+  req: IncomingMessage,
+  res: ServerResponse,
+  ctx: CliContext,
+): Promise<void> {
+  const plan = await ctx.orchestrator.readComicBookPlan(projectId);
+  if (!plan) {
+    return json(res, 404, { error: 'No comic book plan' });
+  }
+
+  const projectDir = await ctx.projects.ensureDir(projectId);
+  const { join } = await import('node:path');
+  const { existsSync } = await import('node:fs');
+  const htmlPath = join(projectDir, 'comic', 'preview.html');
+
+  if (!existsSync(htmlPath)) {
+    await renderComicPreviewHtml(projectId, ctx, plan);
+  }
+
+  const html = await (await import('node:fs/promises')).readFile(htmlPath, 'utf8');
+  res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+  res.end(html);
+}
+
+// --------------- comic handler: export PDF ---------------
+
+async function handleComicExportPdf(
+  projectId: string,
+  req: IncomingMessage,
+  res: ServerResponse,
+  ctx: CliContext,
+): Promise<void> {
+  const plan = await ctx.orchestrator.readComicBookPlan(projectId);
+  if (!plan) {
+    return json(res, 404, { error: 'No comic book plan' });
+  }
+
+  const htmlPath = await renderComicPreviewHtml(projectId, ctx, plan);
+  const projectDir = await ctx.projects.ensureDir(projectId);
+  const { join } = await import('node:path');
+  const outputPath = join(projectDir, 'comic', `${sanitizeFilename(plan.title)}.pdf`);
+
+  // Try puppeteer-based PDF export if chromium is available
+  try {
+    await htmlToPdf(htmlPath, outputPath);
+    const project = await ctx.orchestrator.load(projectId);
+    return json(res, 200, { ok: true, outputPath, project });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    // Fall back to HTML export
+    const project = await ctx.orchestrator.load(projectId);
+    return json(res, 200, {
+      ok: true,
+      htmlPath,
+      project,
+      warning: `PDF renderer unavailable (${msg}) — HTML preview is available`,
+    });
+  }
+}
+
+// --------------- comic handler: export PNG ---------------
+
+async function handleComicExportPng(
+  projectId: string,
+  req: IncomingMessage,
+  res: ServerResponse,
+  ctx: CliContext,
+): Promise<void> {
+  const plan = await ctx.orchestrator.readComicBookPlan(projectId);
+  if (!plan) {
+    return json(res, 404, { error: 'No comic book plan' });
+  }
+
+  const projectDir = await ctx.projects.ensureDir(projectId);
+  const { join } = await import('node:path');
+  const { mkdir } = await import('node:fs/promises');
+  const pngDir = join(projectDir, 'comic', 'png-pages');
+  await mkdir(pngDir, { recursive: true });
+
+  const files: string[] = [];
+  const imgDir = join(projectDir, 'comic', 'images');
+
+  for (const page of plan.pages.sort((a, b) => a.order - b.order)) {
+    const panelImgs = page.panels
+      .filter((p) => p.generatedImageAssetId)
+      .map((p) => join(imgDir, `${p.generatedImageAssetId}.png`));
+    if (panelImgs.length > 0) {
+      const { existsSync, copyFileSync } = await import('node:fs');
+      const pagePath = join(pngDir, `page-${String(page.order).padStart(2, '0')}.png`);
+      // Copy the first panel image as page thumbnail (or use full-page render)
+      if (existsSync(panelImgs[0]!)) {
+        copyFileSync(panelImgs[0]!, pagePath);
+        files.push(pagePath);
+      }
+    }
+  }
+
+  return json(res, 200, { ok: true, files, pageCount: files.length });
+}
+
+// --------------- comic handler: export Webtoon ---------------
+
+async function handleComicExportWebtoon(
+  projectId: string,
+  req: IncomingMessage,
+  res: ServerResponse,
+  ctx: CliContext,
+): Promise<void> {
+  const plan = await ctx.orchestrator.readComicBookPlan(projectId);
+  if (!plan) {
+    return json(res, 404, { error: 'No comic book plan' });
+  }
+
+  // Webtoon format: all panels in a single vertical strip
+  const projectDir = await ctx.projects.ensureDir(projectId);
+  const { join } = await import('node:path');
+  const { writeFile, mkdir } = await import('node:fs/promises');
+
+  const panels = plan.pages
+    .sort((a, b) => a.order - b.order)
+    .flatMap((p) => p.panels.sort((a, b) => a.order - b.order));
+
+  const panelsHtml = panels
+    .map((panel) => {
+      const imgHtml = panel.generatedImageAssetId
+        ? `<img src="/preview/${projectId}/comic/images/${panel.generatedImageAssetId}.png" style="width:100%;display:block" />`
+        : `<div style="min-height:200px;background:#16213e;display:grid;place-items:center;color:#666">Panel ${panel.order}</div>`;
+      const letters = panel.lettering
+        .map((l) => `<div style="padding:8px 12px;background:rgba(255,255,255,.9);color:#111;margin:4px 0;border-radius:6px;font-size:14px"><strong>${escapeHtml(plan.characters.find((c) => c.id === l.speakerCharacterId)?.name || '')}</strong>: ${escapeHtml(l.text)}</div>`)
+        .join('');
+      return `<div style="margin-bottom:8px">${imgHtml}${letters}</div>`;
+    })
+    .join('');
+
+  const html = `<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;padding:8px;background:#1a1a2e;color:#e0e0e0;font-family:system-ui,sans-serif;max-width:800px;margin:0 auto}</style></head><body><h1 style="text-align:center;color:#fff;padding:16px;font-family:Georgia,serif">${escapeHtml(plan.title)}</h1><p style="text-align:center;color:#a0a0c0;font-style:italic;margin-bottom:24px">${escapeHtml(plan.logline)}</p>${panelsHtml}</body></html>`;
+
+  const wtDir = join(projectDir, 'comic', 'webtoon');
+  await mkdir(wtDir, { recursive: true });
+  const htmlPath = join(wtDir, 'webtoon.html');
+  await writeFile(htmlPath, html, 'utf8');
+
+  return json(res, 200, { ok: true, htmlPath, panelCount: panels.length });
+}
+
+// --------------- helpers ---------------
+
+function extractJson(text: string): string {
+  // Find the first { and matching }
+  const start = text.indexOf('{');
+  if (start === -1) return text;
+  let depth = 0;
+  for (let i = start; i < text.length; i++) {
+    if (text[i] === '{') depth++;
+    else if (text[i] === '}') {
+      depth--;
+      if (depth === 0) return text.slice(start, i + 1);
+    }
+  }
+  return text.slice(start);
+}
+
+function sanitizeFilename(name: string): string {
+  return name.replace(/[<>:"/\\|?*]/g, '_').slice(0, 120) || 'comic';
+}
+
+async function htmlToPdf(htmlPath: string, outputPath: string): Promise<void> {
+  const { spawn } = await import('node:child_process');
+  // Prefer puppeteer via npx, fall back to headless chromium if available
+  await new Promise<void>((resolveFn, reject) => {
+    const proc = spawn('npx', [
+      '--yes', 'puppeteer', '--', '--print-to-pdf=' + outputPath, htmlPath,
+    ], { stdio: ['ignore', 'pipe', 'pipe'], timeout: 60_000 });
+    let stderr = '';
+    proc.stderr.on('data', (chunk: Buffer) => { stderr += chunk.toString(); });
+    proc.on('error', reject);
+    proc.on('exit', (code: number | null) => {
+      if (code === 0) resolveFn();
+      else reject(new Error(`PDF export exited ${code}: ${stderr.slice(-500)}`));
+    });
+  });
 }

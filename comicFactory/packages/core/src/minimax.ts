@@ -17,9 +17,9 @@
 
 import { HtmlVideoError } from './errors.js';
 
-/** Default base URL — matches open-design (`api.minimaxi.chat`). The newer
- *  docs use `api.minimax.io`; override via OD_MINIMAX_BASE_URL when needed. */
-const MINIMAX_DEFAULT_BASE_URL = 'https://api.minimaxi.chat/v1';
+/** Default base URL — current MiniMax API standard uses `api.minimaxi.com`.
+ *  Override via OD_MINIMAX_BASE_URL when needed. */
+const MINIMAX_DEFAULT_BASE_URL = 'https://api.minimaxi.com/v1';
 
 /** Hard ceiling for a single MiniMax request. Music generation is slow but a
  *  request that hasn't returned in 2 minutes is hung, not slow. */
@@ -235,6 +235,164 @@ export async function generateMusic(opts: {
     ext: '.mp3',
     providerNote: `minimax/${MINIMAX_MUSIC_MODEL} · ${instrumental ? 'instrumental' : 'with-vocals'} · ${bytes.length} bytes`,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Image generation
+// ---------------------------------------------------------------------------
+
+/** MiniMax image generation model — image-01 is the current stable model. */
+const MINIMAX_IMAGE_MODEL = 'image-01';
+
+export interface GenerateImageOptions {
+  prompt: string;
+  negativePrompt?: string;
+  aspectRatio?: '1:1' | '16:9' | '9:16' | '4:3' | '3:4' | '3:2' | '2:3';
+  imageCount?: number;
+  style?: string;
+  creds: MinimaxCredentials;
+  signal?: AbortSignal;
+}
+
+export interface GeneratedImage {
+  /** Image bytes (PNG). */
+  bytes: Buffer;
+  /** URL from the API response (may expire). */
+  url: string;
+}
+
+/**
+ * Generate images via MiniMax image_generation API.
+ *
+ * Returns an array of GeneratedImage objects — one per generated image. Each
+ * image is downloaded from the URL MiniMax returns so callers can store them
+ * as project assets without worrying about URL expiry.
+ */
+export async function generateImage(
+  opts: GenerateImageOptions,
+): Promise<GeneratedImage[]> {
+  const prompt = (opts.prompt || '').trim();
+  if (!prompt) {
+    throw new HtmlVideoError('invalid-input', 'image prompt is empty');
+  }
+
+  const body = {
+    model: MINIMAX_IMAGE_MODEL,
+    prompt,
+    ...(opts.negativePrompt ? { negative_prompt: opts.negativePrompt } : {}),
+    aspect_ratio: opts.aspectRatio ?? '3:4',
+    n: opts.imageCount ?? 1,
+    response_format: 'url',
+    ...(opts.style ? { style: opts.style } : {}),
+  };
+
+  const resp = await postJson<{
+    data?: { image_urls?: string[] };
+    base_resp?: { status_code?: number; status_msg?: string };
+  }>(
+    'image_generation',
+    body,
+    opts.creds,
+    'image',
+    opts.signal,
+  );
+
+  const urls = resp.data?.image_urls;
+  if (!urls || urls.length === 0) {
+    throw new HtmlVideoError('render-failed', 'minimax image generation returned no images');
+  }
+
+  // Download each image so callers get persistent bytes.
+  const results: GeneratedImage[] = [];
+  for (const url of urls) {
+    let imgResp: Response;
+    try {
+      imgResp = await fetch(url, { signal: opts.signal });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      throw new HtmlVideoError('render-failed', `minimax image download failed: ${msg}`);
+    }
+    if (!imgResp.ok) {
+      throw new HtmlVideoError(
+        'render-failed',
+        `minimax image download ${imgResp.status}: ${imgResp.statusText}`,
+      );
+    }
+    const bytes = Buffer.from(await imgResp.arrayBuffer());
+    results.push({ bytes, url });
+  }
+
+  return results;
+}
+
+/**
+ * POST + JSON-parse for MiniMax non-audio endpoints (e.g. image_generation
+ * which returns JSON with URLs instead of hex audio).
+ */
+async function postJson<T>(
+  endpoint: string,
+  body: unknown,
+  creds: MinimaxCredentials,
+  label: string,
+  signal?: AbortSignal,
+): Promise<T> {
+  const timeoutSignal = AbortSignal.timeout(MINIMAX_REQUEST_TIMEOUT_MS);
+  const effectiveSignal = signal
+    ? (AbortSignal.any ? AbortSignal.any([signal, timeoutSignal]) : signal)
+    : timeoutSignal;
+  let resp: Response;
+  try {
+    resp = await fetch(`${creds.baseUrl}/${endpoint}`, {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${creds.apiKey}`,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(body),
+      signal: effectiveSignal,
+    });
+  } catch (e) {
+    const isTimeout = e instanceof Error && (e.name === 'TimeoutError' || e.name === 'AbortError');
+    const msg = e instanceof Error ? e.message : String(e);
+    throw new HtmlVideoError(
+      'render-failed',
+      isTimeout
+        ? `minimax ${label} timed out after ${Math.round(MINIMAX_REQUEST_TIMEOUT_MS / 1000)}s`
+        : `minimax ${label} request failed: ${msg}`,
+      true,
+    );
+  }
+
+  const respText = await resp.text();
+  if (!resp.ok) {
+    throw new HtmlVideoError(
+      'render-failed',
+      `minimax ${label} ${resp.status}: ${truncate(respText, 240)}`,
+      resp.status >= 500,
+    );
+  }
+
+  let data: T;
+  try {
+    data = JSON.parse(respText) as T;
+  } catch {
+    throw new HtmlVideoError('render-failed', `minimax ${label} non-JSON: ${truncate(respText, 200)}`);
+  }
+
+  // Check base_resp envelope
+  const envelope = (data as Record<string, unknown>).base_resp as
+    | { status_code?: number; status_msg?: string }
+    | undefined;
+  if (envelope && envelope.status_code !== 0) {
+    const code = envelope.status_code;
+    const hint = code === 1004 || code === 1008 ? ' (auth / insufficient balance)' : '';
+    throw new HtmlVideoError(
+      'render-failed',
+      `minimax ${label} api error ${code}: ${envelope.status_msg || 'unknown'}${hint}`,
+    );
+  }
+
+  return data;
 }
 
 function truncate(s: string, n: number): string {

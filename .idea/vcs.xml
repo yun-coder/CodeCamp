@@ -10,14 +10,13 @@
     <mapping directory="$PROJECT_DIR$/OpenMAIC" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/RuView" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/agency-agents" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/auritalkstudio" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/awesome-ai-apps" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/career-ops" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/hello-agents" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/html-ppt-skill" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/huobao-drama" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/learn-gitHub-project" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/local-deep-research" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/mmdetection3d" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/yao-open-prompts" vcs="Git" />
   </component>
 </project>

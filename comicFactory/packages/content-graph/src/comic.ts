@@ -141,15 +141,19 @@ export function validateComicBookPlan(plan: ComicBookPlan): ComicValidationResul
   const errors: ComicValidationError[] = [];
   const warnings: ComicValidationError[] = [];
 
-  if (!plan.pages || plan.pages.length === 0) {
-    errors.push({ code: 'empty-comic', message: 'Comic book has no pages' });
-    return { ok: false, errors, warnings };
+  const pages = plan.pages ?? [];
+
+  if (pages.length === 0) {
+    warnings.push({
+      code: 'empty-comic',
+      message: 'Comic image collection has no pages yet; generate the image list next',
+    });
   }
 
-  if (plan.pageCount !== plan.pages.length) {
+  if (pages.length > 0 && plan.pageCount !== pages.length) {
     warnings.push({
       code: 'page-count-mismatch',
-      message: `Declared pageCount ${plan.pageCount} differs from actual pages ${plan.pages.length}`,
+      message: `Declared pageCount ${plan.pageCount} differs from actual pages ${pages.length}`,
     });
   }
 
@@ -174,7 +178,7 @@ export function validateComicBookPlan(plan: ComicBookPlan): ComicValidationResul
     }
   }
 
-  for (const page of plan.pages) {
+  for (const page of pages) {
     addId(page.id, 'page');
     for (const panel of page.panels) {
       addId(panel.id, 'panel');

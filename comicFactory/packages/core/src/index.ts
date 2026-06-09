@@ -17,5 +17,11 @@ export {
   resolveMinimaxCredentials,
   generateTts,
   generateMusic,
+  generateImage,
 } from './minimax.js';
-export type { MinimaxCredentials, MinimaxAudioResult } from './minimax.js';
+export type {
+  MinimaxCredentials,
+  MinimaxAudioResult,
+  GenerateImageOptions,
+  GeneratedImage,
+} from './minimax.js';
