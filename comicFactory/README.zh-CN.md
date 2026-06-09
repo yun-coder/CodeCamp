@@ -6,18 +6,6 @@
 
 ---
 
-## 新方向：输入想法生成彩色漫画书
-
-Comic Factory 正在从 HTML 视频生成底座，改造成 AI 彩色漫画书生成工作台：
-
-- 输入一句想法、小说片段、文章链接或角色设定。
-- 生成故事大纲、角色圣经、分镜脚本、彩色漫画页和对白气泡。
-- 导出 PDF、PNG 页面包、Webtoon 长图，并复用现有渲染能力生成 MP4 预告片。
-
-第一阶段改造已经开始：新增 ComicBook IR、漫画书计划持久化字段和商业落地文档。完整方案见 [docs/comic-book-business-plan.zh-CN.md](docs/comic-book-business-plan.zh-CN.md)。
-
----
-
 ## 为什么存在
 
 HTML to Video 是一个真实的品类 — 但每个引擎都有自己的创作范式：

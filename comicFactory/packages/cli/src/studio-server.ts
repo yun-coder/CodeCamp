@@ -79,32 +79,6 @@ export async function startStudioServer(ctx: CliContext, port: number): Promise<
         return json(res, 200, { project });
       }
 
-      // Get / update / delete single project
-      const projMatch = url.pathname.match(/^\/api\/projects\/([^/]+)$/);
-      if (projMatch && projMatch[1]) {
-        const id = projMatch[1];
-        if (m === 'GET') {
-          return json(res, 200, { project: await ctx.orchestrator.load(id) });
-        }
-        if (m === 'PATCH') {
-          const body = await readBody(req);
-          const project = await ctx.orchestrator.load(id);
-          if (typeof body.name === 'string' && body.name.trim()) {
-            project.name = body.name.trim().slice(0, 80);
-          }
-          if (typeof body.intent === 'string') {
-            project.intent = body.intent.slice(0, 280);
-          }
-          await ctx.projects.save(project);
-          return json(res, 200, { project: await ctx.orchestrator.load(id) });
-        }
-        if (m === 'DELETE') {
-          await ctx.orchestrator.remove(id);
-          MESSAGES.delete(id);
-          return json(res, 200, { ok: true });
-        }
-      }
-
       // List engines + templates
       if (url.pathname === '/api/templates' && m === 'GET') {
         return json(res, 200, {
@@ -1010,7 +984,7 @@ export async function startStudioServer(ctx: CliContext, port: number): Promise<
               },
               onSse: sseWrite,
             });
-            summaryLine = `✓ ${result.frameCount}-frame storyboard generated (intent: ${result.intent})`;
+            summaryLine = `✓ ${result.frameCount}-page book plan generated (intent: ${result.intent})`;
             sseWrite({ type: 'preview_ready', preview_url: `/preview/${id}`, frames: result.frameCount });
             sseWrite({ type: 'message_end', reason: 'ok' });
           } catch (err) {
@@ -1099,10 +1073,10 @@ export async function startStudioServer(ctx: CliContext, port: number): Promise<
               try {
                 await ctx.orchestrator.writeFrameHtml(id, focusFrameId, extracted);
                 sseWrite({ type: 'preview_ready', preview_url: `/preview/${id}`, focused_frame: focusFrameId });
-                summaryLine = `✓ frame ${focusFrameId} updated`;
+                summaryLine = `✓ page ${focusFrameId} updated`;
               } catch (err) {
                 const msg = err instanceof Error ? err.message : String(err);
-                sseWrite({ type: 'text', chunk: `\n[frame ${focusFrameId} write failed: ${msg}]\n` });
+                  sseWrite({ type: 'text', chunk: `\n[page ${focusFrameId} write failed: ${msg}]\n` });
               }
             }
           } else {
@@ -1116,17 +1090,17 @@ export async function startStudioServer(ctx: CliContext, port: number): Promise<
                   await ctx.orchestrator.writeFrameHtml(id, f.nodeId, f.html);
                 } catch (err) {
                   const msg = err instanceof Error ? err.message : String(err);
-                  sseWrite({ type: 'text', chunk: `\n[frame ${f.nodeId} skipped: ${msg}]\n` });
+                  sseWrite({ type: 'text', chunk: `\n[page ${f.nodeId} skipped: ${msg}]\n` });
                 }
               }
               sseWrite({ type: 'preview_ready', preview_url: `/preview/${id}`, frames: multi.frames.length });
-              summaryLine = `✓ ${multi.frames.length}-frame storyboard generated (intent: ${multi.graph.intent})`;
+              summaryLine = `✓ ${multi.frames.length}-page book plan generated (intent: ${multi.graph.intent})`;
             } else {
               const extracted = extractHtmlDocument(assistantText);
               if (extracted) {
                 await ctx.orchestrator.writePreviewHtmlRaw(id, extracted);
                 sseWrite({ type: 'preview_ready', preview_url: `/preview/${id}` });
-                summaryLine = '✓ updated the HTML preview';
+                summaryLine = '✓ updated the comic page preview';
               }
             }
           }
@@ -1352,6 +1326,33 @@ export async function startStudioServer(ctx: CliContext, port: number): Promise<
           }
         }
         return serveFile(filePath, res);
+      }
+
+      // ============== Generic project routes (last, catch-all) ==============
+      // Get / update / delete single project — MUST be after all specific sub-routes
+      const projMatch = url.pathname.match(/^\/api\/projects\/([^/]+)$/);
+      if (projMatch && projMatch[1]) {
+        const id = projMatch[1];
+        if (m === 'GET') {
+          return json(res, 200, { project: await ctx.orchestrator.load(id) });
+        }
+        if (m === 'PATCH') {
+          const body = await readBody(req);
+          const project = await ctx.orchestrator.load(id);
+          if (typeof body.name === 'string' && body.name.trim()) {
+            project.name = body.name.trim().slice(0, 80);
+          }
+          if (typeof body.intent === 'string') {
+            project.intent = body.intent.slice(0, 280);
+          }
+          await ctx.projects.save(project);
+          return json(res, 200, { project: await ctx.orchestrator.load(id) });
+        }
+        if (m === 'DELETE') {
+          await ctx.orchestrator.remove(id);
+          MESSAGES.delete(id);
+          return json(res, 200, { ok: true });
+        }
       }
 
       // ============== Static UI ==============
@@ -1743,9 +1744,9 @@ type ConvPhase =
   | 'generate'
   | 'iterate';
 
-/** Did the user pick the "choose from design templates" style option? */
+/** Did the user pick the "choose from page style pack" style option? */
 function isFromTemplateStyle(style: string): boolean {
-  return /^从设计模板选|design template|pick.*template|from template/i.test(style.trim());
+  return /^从设计模板选|从页面风格包选|页面风格|design template|pick.*template|from template|page style|style pack/i.test(style.trim());
 }
 
 interface PhaseInputs {
@@ -1821,7 +1822,7 @@ function detectPhase(
     inputs.pickedType = lastCardPickByPhase(history, 'type');
     inputs.pickedStyle = trimmed;
     inputs.contentTurns = collectContentTurns(history);
-    // "从设计模板选" but no template actually picked → don't silently fall back
+    // "从页面风格包选" but no page style actually picked → don't silently fall back
     // to a default look; ask the user to pick one (top-bar) or choose a style.
     if (isFromTemplateStyle(trimmed) && !hasTemplate) {
       return { phase: 'need-template', inputs };
@@ -1834,13 +1835,13 @@ function detectPhase(
     inputs.pickedType = lastCardPickByPhase(history, 'type');
     inputs.contentTurns = collectContentTurns(history);
     // Picked a built-in style instead → use it.
-    if (!isFromTemplateStyle(trimmed) && !/^我已选好模板|继续|done|ready|next$/i.test(trimmed)) {
+    if (!isFromTemplateStyle(trimmed) && !/^我已选好(?:模板|页面风格)|继续|done|ready|next$/i.test(trimmed)) {
       inputs.pickedStyle = trimmed;
       return { phase: 'format', inputs };
     }
     // Said "I've picked one / continue": proceed only if a template is now set.
     if (hasTemplate) {
-      inputs.pickedStyle = '从设计模板选';
+      inputs.pickedStyle = '从页面风格包选';
       return { phase: 'format', inputs };
     }
     return { phase: 'need-template', inputs }; // still none → ask again
@@ -2145,7 +2146,7 @@ function buildHtmlGenerationPrompt(args: BuildPromptArgs): string {
   if (phase === 'opener') {
     const opener: string[] = [];
     opener.push(
-      `The user just opened a project and said "${trimmed}". You are an HTML-video creation assistant.`,
+      `The user just opened a project and said "${trimmed}". You are a comic-book creation assistant for Comic Factory.`,
     );
     opener.push('');
     opener.push(`Reply with TWO things, in this exact order:`);
@@ -2154,12 +2155,12 @@ function buildHtmlGenerationPrompt(args: BuildPromptArgs): string {
     opener.push('```hv-options');
     opener.push(JSON.stringify({
       meta: { phase: 'type' },
-      question: '想做哪种内容？',
+      question: '想生成哪种漫画书？',
       options: [
-        { label: '单帧标题卡',   hint: 'logo / 封面 / 单画面 - 5-10s' },
-        { label: '多帧预告片',   hint: '产品 / 活动 teaser, 3-6 帧' },
-        { label: '数据大字报',   hint: '1-2 个核心数字, 社媒爆款风' },
-        { label: '概念解说短片', hint: '几帧讲清一个 idea / feature' },
+        { label: '短篇彩色漫画书', hint: '8 页左右，封面 + 连续剧情' },
+        { label: 'Webtoon 条漫', hint: '竖向滚动，适合小红书/公众号/移动端' },
+        { label: '儿童绘本漫画', hint: '温暖彩色，低龄友好，旁白清晰' },
+        { label: '文章/小说转漫画', hint: '把素材拆成页面、分镜和对白' },
       ],
       allow_freeform: true,
     }, null, 2));
@@ -2167,7 +2168,7 @@ function buildHtmlGenerationPrompt(args: BuildPromptArgs): string {
     opener.push('');
     if (tmpl) {
       opener.push(
-        `Note: a template "${tmpl.name}" is currently selected (${tmpl.description}). Treat it as a visual style reference only — content type still drives the structure.`,
+        `Note: a page style "${tmpl.name}" is currently selected (${tmpl.description}). Treat it as a visual style reference only — comic format still drives the structure.`,
       );
       opener.push('');
     }
@@ -2184,21 +2185,21 @@ function buildHtmlGenerationPrompt(args: BuildPromptArgs): string {
     // Source material present → DON'T interrogate. The article/repo content is
     // the topic; acknowledge it and let the flow advance to style/format.
     if (hasSourceMaterial) {
-      p.push(`The user is making a ${pickedType ? `"${pickedType}"` : 'video'} based on the source material below — do NOT ask them what it's about, the content is already provided.`);
+      p.push(`The user is making a ${pickedType ? `"${pickedType}"` : 'comic book'} based on the source material below — do NOT ask them what it's about, the content is already provided.`);
       p.push('');
       for (const a of attachments) p.push(...renderAttachment(a));
       p.push('');
-      p.push(`In the user's language, write ONE short line that names the actual topic/title you read from the source and states the video will be built from it (e.g. "好，我读完了《…》这篇文章 — 这就基于它生成。下一步选风格。"). Do NOT ask the user to retype or summarize anything. End with this hidden marker on its own line:`);
+      p.push(`In the user's language, write ONE short line that names the actual topic/title you read from the source and states the comic book will be built from it (e.g. "好，我读完了《…》这篇文章 — 这就基于它做成漫画书。下一步选画风。"). Do NOT ask the user to retype or summarize anything. End with this hidden marker on its own line:`);
       p.push('<!-- hv-phase:content-question -->');
       p.push('');
       p.push(`Plain text + the marker only. NO code blocks. NO questions. Do NOT return an empty reply.`);
       return p.join('\n');
     }
 
-    p.push(`The user is making a ${pickedType ? `"${pickedType}"` : 'video'}. Collect concrete content for it via natural conversation — DO NOT emit any code block, hv-options, hv-form, or hv-confirm. End your reply with this hidden marker on its own line so the server knows you're still in the content phase:`);
+    p.push(`The user is making a ${pickedType ? `"${pickedType}"` : 'comic book'}. Collect concrete story content for it via natural conversation — DO NOT emit any code block, hv-options, hv-form, or hv-confirm. End your reply with this hidden marker on its own line so the server knows you're still in the content phase:`);
     p.push('<!-- hv-phase:content-question -->');
     p.push('');
-    p.push(`Goal: surface what the video is ABOUT (topic, brand / project name, headline / tagline, key numbers or data points). The user can answer, partially answer, or say "随便发挥 / skip / 不知道" — accept whatever they give and move on.`);
+    p.push(`Goal: surface the comic's premise, protagonist, setting, audience, ending tone, source material, and any must-keep characters or scenes. The user can answer, partially answer, or say "随便发挥 / skip / 不知道" — accept whatever they give and move on.`);
     p.push('');
     if (turns.length === 0) {
       p.push(`This is the first content turn. Ask 1–3 short, sharp questions, in the user's language. Keep it under 60 words. Mention they can answer fully, partially, or just say "skip" / "随便".`);
@@ -2217,42 +2218,42 @@ function buildHtmlGenerationPrompt(args: BuildPromptArgs): string {
   if (phase === 'style') {
     const pickedType = inputs.pickedType ?? '';
     const p: string[] = [];
-    p.push(`The user has shared their content for a "${pickedType}". Now ask them about visual style with ONE hv-options card. JSON shape EXACTLY as shown — keep "meta" verbatim:`);
+    p.push(`The user has shared their content for a "${pickedType}". Now ask them about comic art direction with ONE hv-options card. JSON shape EXACTLY as shown — keep "meta" verbatim:`);
     p.push('```hv-options');
     p.push(JSON.stringify({
       meta: { phase: 'style' },
-      question: '视觉风格怎么定？',
+      question: '漫画画风怎么定？',
       options: [
-        { label: 'Cyberpunk glitch',   hint: '霓虹 / 故障感 / 高对比' },
-        { label: 'Swiss minimalist',   hint: '网格 / 无衬线 / 留白' },
-        { label: 'Warm-grain magazine',hint: '纸感 / 衬线 / 暖色' },
-        { label: 'Mono brutalist',     hint: '黑白 / 块状 / 粗体' },
-        { label: '从设计模板选',       hint: '上方挑一个现成模板' },
+        { label: '美式彩漫', hint: '粗线条 / 高饱和 / 动作感' },
+        { label: '儿童绘本', hint: '温暖色彩 / 柔和边缘 / 亲和叙事' },
+        { label: '国风修仙', hint: '水墨质感 / 仙侠服饰 / 氛围光' },
+        { label: 'Webtoon 彩色条漫', hint: '竖向阅读 / 大表情 / 清晰对白' },
+        { label: '从页面风格包选', hint: '上方挑一个现成页面风格' },
       ],
       allow_freeform: true,
     }, null, 2));
     p.push('```');
     p.push('');
-    p.push(`Add ONE short sentence above the card in the user's language inviting them to pick or describe a vibe. Mention they can also upload a reference image via the 📎 button.`);
+    p.push(`Add ONE short sentence above the card in the user's language inviting them to pick or describe a comic art style. Mention they can also upload a reference image via the 📎 button.`);
     p.push('');
     p.push(`Do NOT write HTML this turn. Do NOT return an empty reply.`);
     return p.join('\n');
   }
 
-  // ---- need-template: user chose "from design template" but hasn't picked one
+  // ---- need-template: user chose "from page style pack" but hasn't picked one
   if (phase === 'need-template') {
     const p: string[] = [];
-    p.push(`The user chose "从设计模板选" (use a design template) but has NOT selected a template yet. Do NOT generate. Tell them — in their language, ONE short friendly line — to pick a template from the top-bar 模板 / Template dropdown, then offer this card so they can confirm once they've picked, or switch to a built-in style instead. JSON shape EXACTLY — keep "meta" verbatim:`);
+    p.push(`The user chose "从页面风格包选" (use a page style pack) but has NOT selected a style pack yet. Do NOT generate. Tell them — in their language, ONE short friendly line — to pick a page style from the top-bar Page Style dropdown, then offer this card so they can confirm once they've picked, or switch to a built-in comic style instead. JSON shape EXACTLY — keep "meta" verbatim:`);
     p.push('```hv-options');
     p.push(JSON.stringify({
       meta: { phase: 'need-template' },
-      question: '先在顶部「模板」里选一个模板，选好后点下面继续；或直接选一种内置风格：',
+      question: '先在顶部「页面风格」里选一个风格包，选好后点下面继续；或直接选一种内置画风：',
       options: [
-        { label: '我已选好模板，继续', hint: '用顶部选中的模板生成' },
-        { label: 'Cyberpunk glitch',   hint: '霓虹 / 故障感 / 高对比' },
-        { label: 'Swiss minimalist',   hint: '网格 / 无衬线 / 留白' },
-        { label: 'Warm-grain magazine',hint: '纸感 / 衬线 / 暖色' },
-        { label: 'Mono brutalist',     hint: '黑白 / 块状 / 粗体' },
+        { label: '我已选好页面风格，继续', hint: '用顶部选中的风格包生成' },
+        { label: '美式彩漫', hint: '粗线条 / 高饱和 / 动作感' },
+        { label: '儿童绘本', hint: '温暖色彩 / 柔和边缘 / 亲和叙事' },
+        { label: '国风修仙', hint: '水墨质感 / 仙侠服饰 / 氛围光' },
+        { label: 'Webtoon 彩色条漫', hint: '竖向阅读 / 大表情 / 清晰对白' },
       ],
       allow_freeform: true,
     }, null, 2));
@@ -2287,16 +2288,16 @@ function buildHtmlGenerationPrompt(args: BuildPromptArgs): string {
     p.push('```hv-form');
     p.push(JSON.stringify({
       meta: { phase: 'format' },
-      title: isEdit ? '改一下格式' : (isMulti ? '最后一步：尺寸 / 每帧时长 / 帧数' : '最后一步：选个尺寸 / 时长'),
+      title: isEdit ? '改一下页面规格' : (isMulti ? '最后一步：页面规格 / 预告节奏 / 页数' : '最后一步：页面规格 / 预告时长'),
       fields: [
         {
-          key: 'aspect', label: '画面尺寸', kind: 'buttons', required: true,
+          key: 'aspect', label: '页面比例', kind: 'buttons', required: true,
           default: defaults.aspect,
           options: [
-            { value: '16:9 横屏',     label: '16:9 横屏' },
-            { value: '9:16 手机竖屏', label: '9:16 竖屏' },
-            { value: '1:1 方形',      label: '1:1 方形' },
-            { value: '4:5 小红书',    label: '4:5 小红书' },
+            { value: '16:9 横屏',     label: '横向页面 16:9' },
+            { value: '9:16 手机竖屏', label: '手机条漫 9:16' },
+            { value: '1:1 方形',      label: '方形页面 1:1' },
+            { value: '4:5 小红书',    label: '小红书 4:5' },
           ],
         },
         // Multi-frame: pace by PER-FRAME duration (total = per_frame × frames,
@@ -2304,20 +2305,20 @@ function buildHtmlGenerationPrompt(args: BuildPromptArgs): string {
         ...(isMulti
           ? [
               {
-                key: 'per_frame', label: '每帧时长 (秒)', kind: 'buttons', required: true,
+                key: 'per_frame', label: '预告每页停留 (秒)', kind: 'buttons', required: true,
                 default: defaults.per_frame,
-                hint: '总时长 = 每帧时长 × 帧数',
+                hint: '预告时长 = 每页停留 × 页数',
                 options: ['2', '3', '4', '5', '6', '8'].map((v) => ({ value: v, label: `${v}s` })),
               },
               {
-                key: 'frame_count', label: '帧数', kind: 'buttons', required: true,
+                key: 'frame_count', label: '页数', kind: 'buttons', required: true,
                 default: defaults.frame_count,
                 options: ['2', '3', '4', '5', '6', '7', '8', '9', '10'].map((v) => ({ value: v, label: v })),
               },
             ]
           : [
               {
-                key: 'duration', label: '时长 (秒)', kind: 'buttons', required: true,
+                key: 'duration', label: '预告时长 (秒)', kind: 'buttons', required: true,
                 default: defaults.duration,
                 options: ['3', '5', '10', '15'].map((v) => ({ value: v, label: `${v}s` })),
               },
@@ -2338,14 +2339,14 @@ function buildHtmlGenerationPrompt(args: BuildPromptArgs): string {
     const pickedStyle = lastCardPickByPhase(history, 'style') ?? '';
     const contentTurns = collectContentTurns(history);
     const summaryRows: { label: string; value: string }[] = [];
-    if (pickedType) summaryRows.push({ label: '类型', value: pickedType });
+    if (pickedType) summaryRows.push({ label: '成书类型', value: pickedType });
     if (contentTurns.length > 0) {
-      summaryRows.push({ label: '内容', value: contentTurns.join(' · ').slice(0, 240) });
+      summaryRows.push({ label: '故事素材', value: contentTurns.join(' · ').slice(0, 240) });
     }
-    if (pickedStyle) summaryRows.push({ label: '风格', value: pickedStyle });
-    if (tmpl) summaryRows.push({ label: '模板', value: tmpl.name });
+    if (pickedStyle) summaryRows.push({ label: '画风', value: pickedStyle });
+    if (tmpl) summaryRows.push({ label: '页面风格', value: tmpl.name });
     const labelMap: Record<string, string> = {
-      aspect: '尺寸', duration: '时长', frame_count: '帧数', per_frame: '每帧时长',
+      aspect: '页面比例', duration: '预告时长', frame_count: '页数', per_frame: '每页停留',
     };
     // When pacing by per-frame, show per-frame + frames + derived total.
     const pf = Number(collected.per_frame ?? '') || 0;
@@ -2356,7 +2357,7 @@ function buildHtmlGenerationPrompt(args: BuildPromptArgs): string {
     }
     if (pf > 0) {
       const frames = Number(collected.frame_count ?? '4') || 4;
-      summaryRows.push({ label: '总时长', value: `${pf * frames}s` });
+      summaryRows.push({ label: '预告总时长', value: `${pf * frames}s` });
     }
     if (attachments.length > 0) {
       summaryRows.push({ label: '素材', value: attachments.map((a) => a.filename).join(', ') });
@@ -2368,7 +2369,7 @@ function buildHtmlGenerationPrompt(args: BuildPromptArgs): string {
     p.push('```hv-confirm');
     p.push(JSON.stringify({
       meta: { phase: 'confirm' },
-      title: '按这些信息生成？',
+      title: '按这些信息生成漫画书？',
       summary: summaryRows,
       actions: ['generate', 'edit'],
     }, null, 2));
@@ -2396,25 +2397,25 @@ function buildHtmlGenerationPrompt(args: BuildPromptArgs): string {
     else if (aspect === '1:1') resolution = '1080×1080';
     else if (aspect === '4:5') resolution = '1080×1350';
 
-    const styleLabel = pickedStyle && /^从设计模板选|template/i.test(pickedStyle)
-      ? (tmpl ? `(use the selected template "${tmpl.name}" — ${tmpl.description})` : '(let the model choose)')
+    const styleLabel = pickedStyle && isFromTemplateStyle(pickedStyle)
+      ? (tmpl ? `(use the selected page style "${tmpl.name}" — ${tmpl.description})` : '(let the model choose)')
       : pickedStyle;
 
     const p: string[] = [];
-    p.push(`Generate the HTML video file(s) the user just confirmed.`);
+    p.push(`Generate the comic book page HTML file(s) the user just confirmed.`);
     p.push('');
     p.push(`Inputs (use these LITERALLY — do NOT make up brand names or facts beyond what is stated):`);
-    p.push(`- 类型 / type: ${pickedType || '(未指定)'}`);
+    p.push(`- 成书类型 / book type: ${pickedType || '(未指定)'}`);
     if (contentTurns.length > 0) {
-      p.push(`- 内容 / content (what the user told us in the chat):`);
+      p.push(`- 故事素材 / story source (what the user told us in the chat):`);
       for (const t of contentTurns) p.push(`  · ${t.replace(/\n/g, ' ').slice(0, 280)}`);
     } else {
-      p.push(`- 内容 / content: (the user did not specify; pick a sensible default that fits the type, but keep it generic — no fake brand names)`);
+      p.push(`- 故事素材 / story source: (the user did not specify; pick a sensible default that fits the type, but keep it generic — no fake brand names)`);
     }
-    if (styleLabel) p.push(`- 风格 / style: ${styleLabel}`);
-    p.push(`- 画面尺寸: ${aspect} (${resolution})`);
-    p.push(`- 时长: ${collected.duration ?? '?'} 秒`);
-    p.push(`- 帧数: ${collected.frame_count ?? (isMulti ? '4' : '1')}`);
+    if (styleLabel) p.push(`- 画风 / art direction: ${styleLabel}`);
+    p.push(`- 页面比例: ${aspect} (${resolution})`);
+    p.push(`- 预告时长: ${collected.duration ?? '?'} 秒`);
+    p.push(`- 页数: ${collected.frame_count ?? (isMulti ? '4' : '1')}`);
     p.push('');
     if (attachments.length > 0) {
       const { specs, content } = partitionAttachments(attachments);
@@ -2423,11 +2424,11 @@ function buildHtmlGenerationPrompt(args: BuildPromptArgs): string {
       if (content.length > 0 || specs.length === 0) {
         p.push(`Attachments:`);
         for (const a of (content.length ? content : attachments)) p.push(...renderAttachment(a));
-        p.push(`Use binary attachments (images, data files) as actual assets where appropriate (logo, screenshot, data file). The inlined text/article/repo content above is the SOURCE MATERIAL — base the video's actual content (facts, names, numbers, narrative) on it, don't just decorate with it.`);
+        p.push(`Use binary attachments (images, reference art, source docs) as actual assets where appropriate. The inlined text/article/repo content above is the SOURCE MATERIAL — base the comic's actual story, facts, names, numbers, and narrative on it, don't just decorate with it.`);
         p.push('');
       }
     }
-    p.push(`Constraints: full-bleed ${resolution}, opens with an animation timeline, inline CSS + JS, single complete <!doctype html>...</html> document(s). CDN imports (Tailwind, GSAP) are fine. Tag every visible text node with data-hv-text set to a stable key (brand_name, headline, item_1, cta…). No prose outside code blocks.`);
+    p.push(`Constraints: full-bleed ${resolution} comic page(s), readable panel composition, colored art direction, inline CSS + JS, single complete <!doctype html>...</html> document(s). Use HTML/CSS lettering for dialogue balloons, captions, titles, and page numbers. CDN imports (Tailwind, GSAP) are fine. Tag every visible text node with data-hv-text set to a stable key (title, caption_1, dialogue_1, page_number…). No prose outside code blocks.`);
     p.push('');
     // Frame-count safety: claude --print can truncate / stall on very large
     // multi-frame batches. Cap at 10 (high frame counts get progressively
@@ -2440,11 +2441,11 @@ function buildHtmlGenerationPrompt(args: BuildPromptArgs): string {
     // source-material rules, change runSplitMultiFrameGenerate — that's the
     // path users actually hit. Keep the two in sync.
     if (isMulti) {
-      p.push(`Output (multi-frame storyboard) — emit IN THIS EXACT ORDER and SHAPE:`);
+      p.push(`Output (comic pages) — emit IN THIS EXACT ORDER and SHAPE:`);
       p.push(`1. ONE \`\`\`json#content-graph block.`);
       p.push(`2. ONE \`\`\`html#<nodeId> block per node.`);
       p.push('');
-      p.push(`Aim for ${requestedFrames} frames. Each frame should be self-contained, full-bleed ${resolution}, with its own opening animation. Nothing between blocks.`);
+      p.push(`Aim for ${requestedFrames} pages. Each page should be self-contained, full-bleed ${resolution}, with clear panels, lettering, and page-level composition. Nothing between blocks.`);
       p.push('');
       if (attachments.length > 0) {
         // The agent has, in practice, been handed the full article yet fallen
@@ -2454,7 +2455,7 @@ function buildHtmlGenerationPrompt(args: BuildPromptArgs): string {
         p.push(`- EVERY node's "text" MUST quote or paraphrase a SPECIFIC fact, name, number, product, or claim from the source material. Pull the real proper nouns (product names, companies, metrics, version numbers) verbatim.`);
         p.push(`- The "synopsis" MUST name the article's actual subject — not "AI/technology trends" or any vague category.`);
         p.push(`- BANNED: generic motivational filler with no tie to the source ("看清本质", "第一性原理", "复杂表象之下", "you really understand…", "the logic behind…"). If a line would fit ANY article, it is wrong — replace it with something that could ONLY come from THIS source.`);
-        p.push(`- A reader who knows the article must recognize each frame as being about it; a reader who doesn't must learn its specific points.`);
+        p.push(`- A reader who knows the article must recognize each page as being about it; a reader who doesn't must learn its specific points.`);
         p.push('');
       }
       // Skeleton for multi-frame — empirically claude --print returns 1 byte
@@ -2465,21 +2466,21 @@ function buildHtmlGenerationPrompt(args: BuildPromptArgs): string {
       p.push(JSON.stringify({
         schemaVersion: 1,
         intent: 'explainer',
-        synopsis: '<one-line description>',
+        synopsis: '<one-line comic book description>',
         nodes: Array.from({ length: requestedFrames }, (_, i) => ({
-          id: `frame_${i + 1}`,
+          id: `page_${i + 1}`,
           kind: i === 0 ? 'text' : i === requestedFrames - 1 ? 'entity' : (i % 2 ? 'data' : 'text'),
           durationSec: Math.max(2, Math.floor(Number(collected.duration ?? '15') / requestedFrames)),
         })),
         edges: Array.from({ length: requestedFrames - 1 }, (_, i) => ({
-          from: `frame_${i + 1}`,
-          to: `frame_${i + 2}`,
+          from: `page_${i + 1}`,
+          to: `page_${i + 2}`,
           kind: 'sequence',
         })),
       }, null, 2));
       p.push('```');
       p.push('');
-      p.push('```html#frame_1');
+      p.push('```html#page_1');
       p.push(`<!doctype html>
 <html><head><meta charset="utf-8"><style>
 html,body{margin:0;height:100%;background:#000;color:#fff;overflow:hidden;font-family:system-ui,sans-serif}
@@ -2491,11 +2492,11 @@ h1{font-size:8vw;letter-spacing:-.03em;animation:in 1s ease forwards;opacity:0;t
 </body></html>`);
       p.push('```');
       p.push('');
-      p.push(`(continue with the same shape for the remaining frames — \`\`\`html#frame_2 … \`\`\`html#frame_${requestedFrames})`);
+      p.push(`(continue with the same shape for the remaining pages — \`\`\`html#page_2 … \`\`\`html#page_${requestedFrames})`);
       if (baseHtml && baseHtml.length > 0) {
         p.push('');
         p.push(tmpl
-          ? `Template HTML — this is the REQUIRED visual style. Reuse its palette, layout, typography, and animation approach; change only the text/data to fit the source material. Do NOT switch to a different look (no dark "cosmic particle" default, etc.):`
+          ? `Page style HTML — this is the REQUIRED visual style. Reuse its palette, layout, typography, and animation approach; change only the story, panels, and lettering to fit the source material. Do NOT switch to a different look (no dark "cosmic particle" default, etc.):`
           : `Prior preview HTML to draw style from:`);
         p.push('```html');
         p.push(baseHtml.slice(0, 3000));
@@ -2506,7 +2507,7 @@ h1{font-size:8vw;letter-spacing:-.03em;animation:in 1s ease forwards;opacity:0;t
       p.push('');
       if (baseHtml && baseHtml.length > 0) {
         p.push(tmpl
-          ? `Template HTML — this is the REQUIRED visual style. Reuse its palette, layout, typography, and animation approach; change only the text/data to fit the source material. Do NOT switch to a different look:`
+          ? `Page style HTML — this is the REQUIRED visual style. Reuse its palette, layout, typography, and animation approach; change only the story, panels, and lettering to fit the source material. Do NOT switch to a different look:`
           : `Prior preview HTML (iterate on its visual style if it fits, or replace if a different vibe is better):`);
         p.push('```html');
         p.push(baseHtml.slice(0, 4000));
@@ -2528,7 +2529,7 @@ h1{font-size:8vw;letter-spacing:-.03em;animation:in 1.2s ease forwards;opacity:0
     }
     p.push('');
     if (tmpl) {
-      p.push(`Template visual signature (REQUIRED): ${tmpl.name} — ${tmpl.description}. Match this look — it is the whole reason the template was chosen. Only a single explicit user style note may override it; "based on this article" is NOT such an override.`);
+      p.push(`Page style signature (REQUIRED): ${tmpl.name} — ${tmpl.description}. Match this look — it is the whole reason the page style was chosen. Only a single explicit user art-direction note may override it; "based on this article" is NOT such an override.`);
       p.push('');
     }
     p.push(`Do NOT return an empty reply. Do NOT emit any of \`\`\`hv-options / \`\`\`hv-form / \`\`\`hv-confirm — those are over.`);
@@ -2545,9 +2546,9 @@ h1{font-size:8vw;letter-spacing:-.03em;animation:in 1.2s ease forwards;opacity:0
   // skeleton trick used by generate-phase.
   const it: string[] = [];
   if (args.focusFrameId) {
-    it.push(`The user has pinned frame "${args.focusFrameId}" and wants to revise ONLY that frame. Apply their request below — write a fresh complete HTML page that delivers the same content, in roughly the same visual style, but with the requested change.`);
+    it.push(`The user has pinned page "${args.focusFrameId}" and wants to revise ONLY that page. Apply their request below — write a fresh complete HTML comic page that delivers the same story beat, in roughly the same visual style, but with the requested change.`);
   } else {
-    it.push(`The user is iterating on an existing HTML video. Apply their request below — write a fresh complete HTML page that delivers the same content, in roughly the same visual style, but with the requested change.`);
+    it.push(`The user is iterating on an existing comic page/book. Apply their request below — write a fresh complete HTML comic page that delivers the same content, in roughly the same visual style, but with the requested change.`);
   }
   it.push('');
   it.push(`# User request`);
@@ -2564,7 +2565,7 @@ h1{font-size:8vw;letter-spacing:-.03em;animation:in 1.2s ease forwards;opacity:0
     // 1 byte ~70% of the time (verified by hand). A summary of the
     // existing content + palette is enough to anchor a clean rewrite.
     const summary = summariseHtmlForIterate(baseHtml);
-    it.push(`# Current frame — what's there now`);
+    it.push(`# Current page — what's there now`);
     if (summary.headline) it.push(`Headline: ${summary.headline}`);
     if (summary.subheads.length) it.push(`Sub-text:\n${summary.subheads.map((s) => `  · ${s}`).join('\n')}`);
     if (summary.dataPoints.length) it.push(`Data points:\n${summary.dataPoints.map((s) => `  · ${s}`).join('\n')}`);
@@ -2572,7 +2573,7 @@ h1{font-size:8vw;letter-spacing:-.03em;animation:in 1.2s ease forwards;opacity:0
     if (summary.fontFamilies.length) it.push(`Fonts: ${summary.fontFamilies.join(', ')}`);
     it.push('');
   }
-  it.push(`Output: ONE complete HTML document. Begin your reply with \`\`\`html and end with \`\`\`. Inline all CSS / JS. Full-bleed 1920×1080. Tag visible text with data-hv-text (preserve existing keys when meaningful). No prose outside the block. Do NOT return an empty reply.`);
+  it.push(`Output: ONE complete HTML comic page document. Begin your reply with \`\`\`html and end with \`\`\`. Inline all CSS / JS. Full-bleed 1920×1080. Use readable comic panels, captions, and dialogue balloons. Tag visible text with data-hv-text (preserve existing keys when meaningful). No prose outside the block. Do NOT return an empty reply.`);
   it.push('');
   it.push(`Skeleton to extend (replace with the real content + visual style):`);
   it.push('```html');
@@ -2773,19 +2774,19 @@ async function runSplitMultiFrameGenerate(
     }
   }
 
-  const styleLabel = pickedStyle && /^从设计模板选|template/i.test(pickedStyle)
-    ? (tmpl ? `(use the selected template "${tmpl.name}" — ${tmpl.description})` : '(let the model choose)')
+  const styleLabel = pickedStyle && isFromTemplateStyle(pickedStyle)
+    ? (tmpl ? `(use the selected page style "${tmpl.name}" — ${tmpl.description})` : '(let the model choose)')
     : pickedStyle;
 
   // ---- Step 1: ask for the content graph only ----
-  onProgress(`📋 规划 ${frameCountReq} 帧的故事板…`);
+  onProgress(`📋 规划 ${frameCountReq} 页漫画书…`);
   const graphPromptParts: string[] = [];
-  graphPromptParts.push(`Plan a ${frameCountReq}-frame HTML video storyboard. Output ONLY a content-graph JSON in a fenced \`\`\`json#content-graph block — no HTML, no prose outside.`);
+  graphPromptParts.push(`Plan a ${frameCountReq}-page color comic book. Output ONLY a content-graph JSON in a fenced \`\`\`json#content-graph block — no HTML, no prose outside.`);
   graphPromptParts.push('');
   graphPromptParts.push(`Inputs (use literally — do NOT invent brand names or facts beyond these):`);
-  graphPromptParts.push(`- 类型 / type: ${pickedType || '(unspecified)'} (this is the FORMAT, NOT the subject — never make the video be "about" the type itself)`);
+  graphPromptParts.push(`- 成书类型 / book type: ${pickedType || '(unspecified)'} (this is the FORMAT, NOT the subject — never make the comic be "about" the type itself)`);
   if (contentTurns.length > 0) {
-    graphPromptParts.push(`- 内容 / content:`);
+    graphPromptParts.push(`- 故事素材 / story source:`);
     for (const t of contentTurns) graphPromptParts.push(`  · ${t.replace(/\n/g, ' ').slice(0, 280)}`);
   }
   // Inline the fetched article / repo / uploaded text — THIS is the subject of
@@ -2796,40 +2797,41 @@ async function runSplitMultiFrameGenerate(
   const sourceTexts = contentAtts.filter((a) => !!a.inlineText);
   if (sourceTexts.length > 0) {
     graphPromptParts.push('');
-    graphPromptParts.push(`SOURCE MATERIAL — the video MUST be about THIS content (real facts, names, numbers from it). This is the subject, not the type:`);
+    graphPromptParts.push(`SOURCE MATERIAL — the comic MUST be about THIS content (real facts, names, numbers from it). This is the subject, not the type:`);
     for (const a of sourceTexts) {
       graphPromptParts.push(`--- ${a.filename} ---`);
       graphPromptParts.push((a.inlineText ?? '').slice(0, 6000));
     }
   }
-  if (styleLabel) graphPromptParts.push(`- 风格 / style: ${styleLabel}`);
-  graphPromptParts.push(`- 总时长: ${totalDurationSec}s split across ${frameCountReq} frames (~${perFrameDurationSec}s each)`);
+  if (styleLabel) graphPromptParts.push(`- 画风 / art direction: ${styleLabel}`);
+  graphPromptParts.push(`- 成书页数: ${frameCountReq} pages`);
+  graphPromptParts.push(`- 预告节奏: ${totalDurationSec}s trailer timing split across ${frameCountReq} pages (~${perFrameDurationSec}s each)`);
   graphPromptParts.push('');
   if (sourceTexts.length > 0) {
-    graphPromptParts.push(`GROUNDING (REQUIRED): every node's text must come from the SOURCE MATERIAL above — quote its real product names, facts, numbers. The synopsis must name the source's actual subject. BANNED: generic filler about the content TYPE (e.g. "什么是概念解说", "信息密度×传播效率") that would fit any video. If a line could fit any topic, it's wrong.`);
+    graphPromptParts.push(`GROUNDING (REQUIRED): every page node's text must come from the SOURCE MATERIAL above — quote its real product names, facts, numbers. The synopsis must name the source's actual subject. BANNED: generic filler about the content TYPE (e.g. "什么是概念解说", "信息密度×传播效率") that would fit any comic. If a line could fit any topic, it's wrong.`);
     graphPromptParts.push('');
   }
-  graphPromptParts.push(`Schema (keep all keys; one node per frame; nodes[].id should be a short readable slug like "intro" / "stat_users" / "outro"):`);
+  graphPromptParts.push(`Schema (keep all keys; one node per comic page; nodes[].id should be a short readable slug like "page_1" / "turning_point" / "finale"):`);
   graphPromptParts.push('```json#content-graph');
   graphPromptParts.push(JSON.stringify({
     schemaVersion: 1,
     intent: 'explainer',
-    synopsis: '<one-line description of the video>',
+    synopsis: '<one-line description of the comic book>',
     nodes: Array.from({ length: frameCountReq }, (_, i) => ({
-      id: `frame_${i + 1}`,
+      id: `page_${i + 1}`,
       kind: i === 0 ? 'text' : i === frameCountReq - 1 ? 'entity' : 'data',
       durationSec: perFrameDurationSec,
-      text: '<headline / subtitle for this frame>',
+      text: '<page beat / caption / key dialogue for this page>',
     })),
     edges: Array.from({ length: frameCountReq - 1 }, (_, i) => ({
-      from: `frame_${i + 1}`,
-      to: `frame_${i + 2}`,
+      from: `page_${i + 1}`,
+      to: `page_${i + 2}`,
       kind: 'sequence',
     })),
   }, null, 2));
   graphPromptParts.push('```');
   graphPromptParts.push('');
-  graphPromptParts.push(`Replace the placeholder text in each node with concrete content from the inputs. Adjust intent to match (single-frame|explainer|data-viz|promo|comparison|other). Keep node ids unique. Do NOT return an empty reply. Do NOT emit any HTML this turn.`);
+  graphPromptParts.push(`Replace the placeholder text in each node with concrete page beats from the inputs. Adjust intent to match the comic format (comic-book|webtoon|picture-book|adaptation|other). Keep node ids unique. Do NOT return an empty reply. Do NOT emit any HTML this turn.`);
   graphPromptParts.push(`STRICT JSON: the block must be valid JSON. Inside string values do NOT use straight double-quotes ("…") — if you need to quote a term or title, use 「」 or 《》 or single quotes. No trailing commas. No comments.`);
 
   const graphPrompt = graphPromptParts.join('\n');
@@ -2849,23 +2851,23 @@ async function runSplitMultiFrameGenerate(
     throw new Error('graph has no nodes');
   }
   await ctx.orchestrator.writeContentGraph(projectId, graph);
-  onProgress(`✓ 故事板规划完成：${graph.nodes.length} 帧 (${graph.intent})`);
+  onProgress(`✓ 成书计划完成：${graph.nodes.length} 页 (${graph.intent})`);
   onSse({ type: 'plan_ready', frame_count: graph.nodes.length, intent: graph.intent });
 
   // ---- Step 2: one call per node, output a single ```html block ----
   for (let i = 0; i < graph.nodes.length; i++) {
     const node = graph.nodes[i]!;
     const nodeId = node.id;
-    onProgress(`🎬 生成第 ${i + 1}/${graph.nodes.length} 帧 (${nodeId})…`);
+    onProgress(`🎨 生成第 ${i + 1}/${graph.nodes.length} 页 (${nodeId})…`);
     onSse({ type: 'frame_started', node_id: nodeId, order: i, total: graph.nodes.length });
 
     const frameContext = describeNode(node);
     const fp: string[] = [];
-    fp.push(`Generate ONE complete HTML page for frame "${nodeId}" of a ${graph.nodes.length}-frame video. Output ONE \`\`\`html block, nothing else.`);
+    fp.push(`Generate ONE complete HTML comic page for page "${nodeId}" of a ${graph.nodes.length}-page color comic book. Output ONE \`\`\`html block, nothing else.`);
     fp.push('');
-    fp.push(`Frame ${i + 1} of ${graph.nodes.length}: ${frameContext}`);
-    fp.push(`Duration: ${node.durationSec ?? perFrameDurationSec}s`);
-    fp.push(`Type: ${pickedType}`);
+    fp.push(`Page ${i + 1} of ${graph.nodes.length}: ${frameContext}`);
+    fp.push(`Trailer dwell time: ${node.durationSec ?? perFrameDurationSec}s`);
+    fp.push(`Book type: ${pickedType}`);
     if (styleLabel) fp.push(`Style: ${styleLabel}`);
     fp.push(`Resolution: ${aspect} (${resolution})`);
     fp.push('');
@@ -2881,20 +2883,20 @@ async function runSplitMultiFrameGenerate(
     if (frameSpecs.length > 0) fp.push(...renderDesignSpecBlock(frameSpecs));
     const frameSourceTexts = frameContentAtts.filter((a) => !!a.inlineText);
     if (frameSourceTexts.length > 0) {
-      fp.push(`SOURCE MATERIAL (the video's real subject — use its actual facts/names/numbers, never generic filler about the content type):`);
+      fp.push(`SOURCE MATERIAL (the comic's real subject — use its actual facts/names/numbers, never generic filler about the content type):`);
       for (const a of frameSourceTexts) fp.push((a.inlineText ?? '').slice(0, 3000));
       fp.push('');
     }
-    fp.push(`Output: begin with \`\`\`html and end with \`\`\`. Inline CSS + JS, full-bleed ${resolution}, opens with an animation timeline. Tag visible text with data-hv-text. CDN imports (Tailwind, GSAP) fine. No prose outside the block.`);
+    fp.push(`Output: begin with \`\`\`html and end with \`\`\`. Inline CSS + JS, full-bleed ${resolution}, readable color comic page with panels, captions, dialogue balloons, and page number. Use HTML/CSS lettering; tag visible text with data-hv-text. CDN imports (Tailwind, GSAP) fine. No prose outside the block.`);
     fp.push('');
     if (templateHtml) {
-      // A template is selected → its HTML is the REQUIRED look for every frame.
-      fp.push(`Template HTML — this is the REQUIRED visual style for THIS frame. Reuse its exact palette, background, typography, layout structure and animation approach; only swap in this frame's text/data. Do NOT invent a different theme (no generic dark background unless the template itself is dark):`);
+      // A page style is selected → its HTML is the REQUIRED look for every page.
+      fp.push(`Page style HTML — this is the REQUIRED visual style for THIS page. Reuse its exact palette, background, typography, layout structure and animation approach; only swap in this page's story beat, panels, and lettering. Do NOT invent a different theme (no generic dark background unless the style itself is dark):`);
       fp.push('```html');
       fp.push(templateHtml.slice(0, 4000));
       fp.push('```');
       fp.push('');
-      fp.push(`Keep all ${graph.nodes.length} frames visually consistent with this template so they read as one video.`);
+      fp.push(`Keep all ${graph.nodes.length} pages visually consistent with this page style so they read as one comic book.`);
     } else {
       fp.push(`Skeleton to extend (replace placeholder, expand styling per type / style):`);
       fp.push('```html');
@@ -2931,8 +2933,8 @@ h1{font-size:8vw;letter-spacing:-.03em;animation:in 1s ease forwards;opacity:0;t
 
     // One retry on empty: shorter prompt, just the skeleton call.
     if (!extracted) {
-      onProgress(`  ↻ 第 ${i + 1} 帧首试为空，重试…`);
-      const retryPrompt = `Output ONE complete HTML video frame in a fenced \`\`\`html block. Frame purpose: ${frameContext}. Style: ${styleLabel || 'tasteful default'}. Resolution: ${resolution}. ${contentTurns.length ? `Content: ${contentTurns.join(' / ').slice(0, 200)}` : ''} \n\nBegin your reply with \`\`\`html. Inline CSS, opens with animation, tag text with data-hv-text. No prose.`;
+      onProgress(`  ↻ 第 ${i + 1} 页首试为空，重试…`);
+      const retryPrompt = `Output ONE complete HTML comic page in a fenced \`\`\`html block. Page purpose: ${frameContext}. Style: ${styleLabel || 'tasteful default'}. Resolution: ${resolution}. ${contentTurns.length ? `Content: ${contentTurns.join(' / ').slice(0, 200)}` : ''} \n\nBegin your reply with \`\`\`html. Inline CSS, readable panels and lettering, tag text with data-hv-text. No prose.`;
       frameText = await callAgentSimple(agentDef, retryPrompt, projectDir, agentModel);
       extracted = /```html\s*\n([\s\S]*?)```/i.exec(frameText)?.[1]?.trim()
         ?? /<!doctype html[\s\S]*?<\/html>/i.exec(frameText)?.[0];
@@ -2941,7 +2943,7 @@ h1{font-size:8vw;letter-spacing:-.03em;animation:in 1s ease forwards;opacity:0;t
       throw new Error(`frame "${nodeId}" generation returned empty (${frameText.length}B)`);
     }
     await ctx.orchestrator.writeFrameHtml(projectId, nodeId, extracted);
-    onProgress(`  ✓ 第 ${i + 1}/${graph.nodes.length} 帧完成 (${nodeId})`);
+    onProgress(`  ✓ 第 ${i + 1}/${graph.nodes.length} 页完成 (${nodeId})`);
     onSse({ type: 'frame_done', node_id: nodeId, order: i, total: graph.nodes.length });
   }
 
@@ -3280,6 +3282,8 @@ async function handleComicGenerateStory(
       const json = extractJson(buf);
       plan = JSON.parse(json) as Record<string, unknown>;
     } catch {
+      process.stderr.write(`[comic:generate-story] extractJson failed. buf head(300): ${buf.slice(0, 300)}\n`);
+      process.stderr.write(`[comic:generate-story] buf tail(300): ${buf.slice(-300)}\n`);
       sse({ type: 'story_failed', message: 'Agent returned invalid JSON — please try again' });
       res.end();
       return;
@@ -3389,6 +3393,8 @@ async function handleComicGeneratePanels(
       const json = extractJson(buf);
       pageData = JSON.parse(json) as Record<string, unknown>;
     } catch {
+      process.stderr.write(`[comic:generate-panels] extractJson failed. buf head(300): ${buf.slice(0, 300)}\n`);
+      process.stderr.write(`[comic:generate-panels] buf tail(300): ${buf.slice(-300)}\n`);
       sse({ type: 'panels_failed', message: 'Agent returned invalid JSON' });
       res.end();
       return;
@@ -3711,13 +3717,29 @@ async function handleComicExportWebtoon(
 // --------------- helpers ---------------
 
 function extractJson(text: string): string {
-  // Find the first { and matching }
+  // Try to extract JSON from markdown code fences first
+  const fenceMatch = text.match(/```(?:json)?\s*\n([\s\S]*?)\n```/);
+  if (fenceMatch && fenceMatch[1]) {
+    const inner = fenceMatch[1].trim();
+    if (inner.startsWith('{') && inner.endsWith('}')) {
+      try { JSON.parse(inner); return inner; } catch { /* fall through */ }
+    }
+  }
+
+  // String-aware brace matching — skips braces inside JSON string literals
   const start = text.indexOf('{');
   if (start === -1) return text;
   let depth = 0;
+  let inString = false;
+  let escaped = false;
   for (let i = start; i < text.length; i++) {
-    if (text[i] === '{') depth++;
-    else if (text[i] === '}') {
+    const ch = text[i];
+    if (escaped) { escaped = false; continue; }
+    if (ch === '\\' && inString) { escaped = true; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (inString) continue;
+    if (ch === '{') depth++;
+    else if (ch === '}') {
       depth--;
       if (depth === 0) return text.slice(start, i + 1);
     }

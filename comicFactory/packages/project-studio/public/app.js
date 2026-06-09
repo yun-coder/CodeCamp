@@ -1,4 +1,4 @@
-// video-pipeline studio v0.4 — chat-driven HTML + template gallery + text-node editor
+// Comic Factory studio — comic-book workflow on top of HTML page rendering.
 
 import { t, getLocale, setLocale, AVAILABLE_LOCALES } from './i18n.js';
 
@@ -311,7 +311,7 @@ function renderSidebar() {
     div.className = 'project-row' + (p.id === state.selectedId ? ' active' : '');
     div.innerHTML = `
       <div class="name">${esc(p.name)}</div>
-      <div class="meta">${p.template_id ? esc(p.template_id) : 'no template'} · ${p.status}</div>
+      <div class="meta">${p.template_id ? `style ${esc(p.template_id)}` : 'no page style'} · ${p.status}</div>
       <button class="row-menu-btn" title="More" data-pid="${esc(p.id)}">⋯</button>
     `;
     div.onclick = (e) => {
@@ -752,9 +752,9 @@ function renderMain() {
         <div class="graph-modal" id="graph-modal">
           <div class="panel">
             <header>
-              <h3>Content graph</h3>
+              <h3>${t('graph.title')}</h3>
               <span class="grow"></span>
-              <button class="download-btn" id="graph-download">⬇ Download JSON</button>
+              <button class="download-btn" id="graph-download">${t('graph.download')}</button>
               <button class="close-btn" id="graph-close">✕</button>
             </header>
             <pre id="graph-json"></pre>
@@ -1193,7 +1193,7 @@ function renderFooter() {
   const fs = document.getElementById('footer-status');
   if (!fs) return;
   if (p) {
-    fs.innerHTML = `<b>${esc(p.name)}</b> · ${p.templateId ? `template <b>${esc(p.templateId)}</b>` : '<i>no template</i>'} · ${p.status}`;
+    fs.innerHTML = `<b>${esc(p.name)}</b> · ${p.templateId ? `page style <b>${esc(p.templateId)}</b>` : '<i>no page style</i>'} · ${p.status}`;
   } else {
     fs.textContent = 'no project';
   }
@@ -1208,9 +1208,9 @@ function renderChatLog() {
       <div style="font-weight:500;margin-bottom:6px;">${t('chat.empty.title')}</div>
       ${t('chat.empty.body')}
       <div class="examples">
-        <b>"Warm-grain magazine outro: Open Design — design that evolves itself"</b>
-        <b>"Cyberpunk glitch title saying SYSTEM ONLINE, neon cyan/magenta"</b>
-        <b>"Swiss-grid data card: Templates 231, Skills 15, Systems 150, Craft 11"</b>
+        <b>"一名凡人少年误入修仙门派，8 页彩色短篇漫画"</b>
+        <b>"Children's picture book: a girl befriends a moon robot, 6 pages"</b>
+        <b>"把这篇科普文章改成 Webtoon 分镜漫画"</b>
       </div>
     </div></div>`;
     return;
@@ -1446,8 +1446,8 @@ function renderMessage(m, idx) {
   if (confirmP.confirm) {
     // Only lock the card when the click actually led somewhere:
     //   - "✏️ 改一下" → next assistant turn re-emitted hv-form (the edit landed)
-    //   - "✓ 开始生成" → next assistant turn produced real output
-    //                   (preview-event / ✓ HTML preview / storyboard summary)
+    //   - "✓ 生成漫画书" → next assistant turn produced real output
+    //                   (preview-event / ✓ preview / book-plan summary)
     // If the click triggered an empty reply or generate failed, treat the
     // card as live so the user can press the button again.
     let resolved = m.confirmResolved;
@@ -1468,11 +1468,11 @@ function renderMessage(m, idx) {
               if (!c) return false;
               if (/^⚠️/.test(c)) return false;
               if (/^✓\s/.test(c)) return true;
-              if (/storyboard generated|HTML preview updated/i.test(c)) return true;
+              if (/book plan generated|storyboard generated|HTML preview updated|comic page updated/i.test(c)) return true;
             }
             return false;
           });
-          if (sawSuccess) resolved = '✓ 开始生成';
+          if (sawSuccess) resolved = '✓ 生成漫画书';
         } else if (t === '[hv-confirm:edit]') {
           resolved = '✏️ 改一下';
         }
@@ -1508,7 +1508,7 @@ function renderMessage(m, idx) {
  * 600 lines of style declarations.
  *
  * Acts on render only; the underlying message content is untouched, so the
- * server's persisted "✓ frame X updated" summary still wins on reload.
+ * server's persisted "✓ page X updated" summary still wins on reload.
  */
 function sanitizeAssistantProse(text) {
   if (!text) return text;
@@ -1704,7 +1704,7 @@ function renderConfirmCard(confirm, resolved, msgIdx) {
   }).join('');
   const actionsHtml = resolved ? '' : `
     <div class="confirm-actions">
-      ${actions.includes('generate') ? `<button class="confirm-go" data-confirm-msg="${msgIdx}" data-action="generate">✓ 开始生成</button>` : ''}
+      ${actions.includes('generate') ? `<button class="confirm-go" data-confirm-msg="${msgIdx}" data-action="generate">✓ 生成漫画书</button>` : ''}
       ${actions.includes('edit') ? `<button class="confirm-edit" data-confirm-msg="${msgIdx}" data-action="edit">✏️ 修改</button>` : ''}
     </div>`;
   return `<div class="confirm-card${resolved ? ' resolved' : ''}">
@@ -2385,15 +2385,15 @@ async function sendMessage() {
             const frameCount = ev.frames || 0;
             const focusedFrame = ev.focused_frame;
             const summary = focusedFrame
-              ? `✓ frame ${focusedFrame} updated`
+              ? `✓ page ${focusedFrame} updated`
               : frameCount > 0
-                ? `✓ ${frameCount}-frame storyboard generated`
-                : '✓ HTML preview updated';
+                ? `✓ ${frameCount}-page book plan generated`
+                : '✓ comic page updated';
             const event = focusedFrame
-              ? `🎞 frame ${focusedFrame} reloaded`
+              ? `🎨 page ${focusedFrame} reloaded`
               : frameCount > 0
-                ? `🎞 storyboard reloaded (${frameCount} frames)`
-                : '🎞 preview reloaded';
+                ? `🎨 book pages reloaded (${frameCount} pages)`
+                : '🎨 preview reloaded';
             if (assistantIdx === -1) {
               state.messages[thinkingIdx] = { role: 'assistant', agent: state.selected.agentId ?? 'claude', content: summary, ts: Date.now() };
               assistantIdx = thinkingIdx;
@@ -2402,8 +2402,8 @@ async function sendMessage() {
             }
             state.messages.push({ role: 'preview-event', content: event, ts: Date.now() });
             renderChatLog();
-            // Multi-frame turn replaces frames[]; reset active frame so the
-            // first frame becomes the default again.
+            // Multi-page turn replaces frames[]; reset active page so the
+            // first page becomes the default again.
             if (frameCount > 0) state.activeFrameId = null;
             const pr = await API.getProject(state.selected.id);
             state.selected = pr.project;

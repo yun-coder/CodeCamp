@@ -1,12 +1,12 @@
 ﻿# Comic Factory
 
-> **HTML becomes video — on your laptop.** Bring your local coding agent. Describe a video, or paste an article link, and the agent turns it into a multi-frame, fully animated video — then renders it to a real MP4 right on your machine. One agent loop, pluggable rendering engines, a curated template gallery, optional AI soundtrack. Apache-2.0, no per-render fees, no vendor lock-in.
+> **Ideas become color comic books — on your laptop.** Bring your local coding agent. Describe a story idea, paste an article link, or drop a character brief; the agent plans a book, generates pages and lettering, then can export page packs or a trailer MP4 with the local render pipeline.
 
 <p align="center"><b>English</b> . <a href="README.zh-CN.md">简体中文</a></p>
 
 ---
 
-## New Direction: Ideas To Color Comic Books
+## Product Direction: Ideas To Color Comic Books
 
 Comic Factory is being refocused from an HTML-to-video foundation into an AI color comic book studio.
 
@@ -20,18 +20,18 @@ Phase one has started with a ComicBook IR, project-level comic plan persistence,
 
 ## Why this exists
 
-HTML to Video is a real category — but every engine is opinionated, and each wants you to learn *its* authoring model:
+AI comic creation is shifting from one-off images to repeatable book production. The hard part is not only drawing a nice panel; it is keeping characters, page beats, lettering, page formats, and exports consistent across the whole book.
 
-| Engine | Paradigm | Tradeoff | In video-pipeline |
-|---|---|---|---|
-| Hyperframes | HTML + CSS + GSAP, agent-skill driven | Single rendering paradigm | Shipped — the default engine; renders real MP4 via headless Chromium + ffmpeg |
-| Remotion | React components | Source-available, paid above 4 devs | Planned |
-| Motion Canvas . Revideo | TypeScript generators on canvas | Best for explainers, code-first | Planned |
-| Manim and friends | Math / 3D first | Niche | Researching |
+Comic Factory keeps the existing HTML rendering foundation, but turns the product surface into a comic-book workflow:
 
-**video-pipeline is the meta-layer that sits above all of them.** You talk to your agent; it picks the engine, picks the template, fills in your content, and renders the video. The engine is an implementation detail behind a single adapter interface.
+| Layer | Role | In Comic Factory |
+|---|---|---|
+| Book planning | Story premise, audience, page count, story beats | `ComicBookPlan` IR and content graph |
+| Character bible | Recurring cast, visual traits, voice | Project-level comic settings and future generation constraints |
+| Page generation | HTML/CSS comic pages with panels and lettering | Existing preview and page rendering pipeline |
+| Export | PDF/PNG/Webtoon packs, plus trailer MP4 | Reuses Chromium + ffmpeg where useful |
 
-> **Status:** the pluggable-engine architecture is in place, and the **Hyperframes engine is fully wired up and renders real MP4** — headless Chromium records the animated HTML frame-by-frame and ffmpeg encodes it (libx264). Remotion, Motion Canvas / Revideo, and Manim are on the roadmap.
+> **Status:** the commercial plan and first technical foundation are in place: ComicBook IR, comic plan persistence, and Studio copy/workflow refocus. The MP4 renderer remains useful for book trailers while PDF/PNG/Webtoon export becomes the main product target.
 
 ---
 
@@ -40,11 +40,11 @@ HTML to Video is a real category — but every engine is opinionated, and each w
 | | |
 |---|---|
 | **Coding agents (6)** | Vela . Claude Code . Cursor Agent . Codex CLI . Hermes . Anthropic Messages API — auto-detected on your PATH |
-| **Real MP4 render** | Headless Chromium records the animated HTML and ffmpeg encodes it (libx264) — locally, no cloud render, no per-clip fee. |
-| **Article / repo to video** | Paste a URL or GitHub repo; the studio fetches it server-side and builds the video from the real content. |
-| **21 templates** | Curated patterns: data viz, product promos, social shorts, explainers, kinetic type, transitions. |
-| **Multi-frame storyboards** | A content-graph drives multi-scene videos; edit per-frame text inline, reorder, re-render. |
-| **AI soundtrack** | Optional background music + narration via MiniMax, mixed into the MP4 at export. |
+| **Comic book workflow** | Idea → premise → characters → page plan → panels → lettering → export. |
+| **Article / novel to comic** | Paste source material; the studio grounds page beats, captions, and dialogue in the real content. |
+| **Page style packs** | Curated visual baselines for American color comics, Webtoon, picture-book, and branded adaptations. |
+| **Multi-page book plan** | A content graph drives page order and timing; edit page text inline, re-render individual pages. |
+| **Trailer audio** | Optional background music + narration via MiniMax, mixed into trailer exports. |
 | **Studio + CLI** | A local browser studio *and* a scriptable CLI. |
 | **License** | Apache-2.0 — no per-render fees, no seat caps. |
 
@@ -53,31 +53,29 @@ HTML to Video is a real category — but every engine is opinionated, and each w
 ## How it works
 
 ```
-  prompt / link / repo
+  idea / link / manuscript
         |
         v
-  1. source fetch        studio pulls the URL or repo server-side, flattens it to Markdown
+  1. source intake       studio collects the idea, article, manuscript, or character brief
         |
         v
-  2. agent loop          your agent reads the material + template style and emits
-        |                a content-graph (storyboard) + one HTML block per frame
+  2. book planning       your agent turns it into premise, characters, page beats, and style
         v
-  3. content-graph       multi-frame IR: nodes + edges, topo-sorted into frame order & timing
+  3. comic IR            ComicBookPlan + content graph: pages, panels, lettering, timing
         |
         v
-  4. per-frame HTML      each node becomes a self-contained animated HTML frame on disk
+  4. page HTML           each page becomes a self-contained color comic page on disk
         |
         v
-  5. render engine       headless Chromium loads each frame, records animation to webm per frame
+  5. render/export       headless Chromium renders pages and trailer scenes
         |
         v
-  6. ffmpeg              each webm to mp4 (libx264), then concat into one video;
-        |                optional MiniMax music + narration mixed in
+  6. package             PDF/PNG/Webtoon page packs; optional MiniMax music + narration
         v
-      your.mp4
+      your comic book
 ```
 
-Single-frame videos take a fast path that skips the content-graph — one template, one HTML, straight to render.
+Single-page drafts take a fast path; multi-page books use the book plan so pages stay coherent.
 
 ---
 
@@ -131,12 +129,12 @@ Both are mixed into the exported MP4 via ffmpeg. No key configured? The rest of 
 ```
 packages/
 ├── core/                  Project / Asset / ContentGraph types, registries, orchestrator
-├── content-graph/         Multi-frame storyboard IR (nodes + edges, topo-sort)
+├── content-graph/         ComicBookPlan + page/content graph IR
 ├── runtime/               Agent runtime — detect / spawn / stream
 ├── adapter-hyperframes/   Hyperframes engine adapter — real render via Chromium + ffmpeg
-├── cli/                   video-pipeline command + the studio HTTP server + source fetching
-└── project-studio/        Browser studio UI (chat, template gallery, frames, soundtrack, export)
-templates/                 21 curated video templates
+├── cli/                   Comic Factory command + Studio HTTP server + source fetching
+└── project-studio/        Browser studio UI (chat, page styles, pages, trailer audio, export)
+templates/                 curated page style packs and legacy render templates
 ```
 
 ## License

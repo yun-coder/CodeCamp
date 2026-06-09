@@ -283,7 +283,6 @@ export async function generateImage(
     aspect_ratio: opts.aspectRatio ?? '3:4',
     n: opts.imageCount ?? 1,
     response_format: 'url',
-    ...(opts.style ? { style: opts.style } : {}),
   };
 
   const resp = await postJson<{
