@@ -483,7 +483,7 @@ class LayerAnalysisWorkflow:
                 "warnings": warnings,
                 "next_model_integrations": [
                     "Human parser (SCHP) — wired as optional provider",
-                    "VLM grounding — wired via openai_vision",
+                    "VLM grounding — wired via minimax_vision",
                     "SAM — wired as optional refinement",
                     "PaddleOCR Cloud — wired as the OCR text provider",
                     "Inpainting/outpainting — wired as repair provider",

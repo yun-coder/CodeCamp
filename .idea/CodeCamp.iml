@@ -73,6 +73,10 @@
       <excludeFolder url="file://$MODULE_DIR$/project-helper/backend/build" />
       <excludeFolder url="file://$MODULE_DIR$/project-helper/build" />
       <excludeFolder url="file://$MODULE_DIR$/pixelforge/.venv" />
+      <excludeFolder url="file://$MODULE_DIR$/comic-studio/.comic-studio" />
+      <excludeFolder url="file://$MODULE_DIR$/pixelforge/checkpoints" />
+      <excludeFolder url="file://$MODULE_DIR$/pixelforge/pixelforge.egg-info" />
+      <excludeFolder url="file://$MODULE_DIR$/pixelforge/pixelforge_runs" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

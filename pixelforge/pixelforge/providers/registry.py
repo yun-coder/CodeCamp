@@ -23,7 +23,7 @@ from pixelforge.providers.ocr.paddleocr_cloud import PaddleOCRCloudProvider
 from pixelforge.providers.parse.schp_human_parser import SCHPHumanParser
 from pixelforge.providers.repair.factory import build_repair_provider
 from pixelforge.providers.segment.sam_local import SAMLocalSegmenter
-from pixelforge.providers.vision.openai_vision import OpenAIVisionPlanner
+from pixelforge.providers.vision.openai_vision import OpenAIVisionPlanner  # noqa: F401 — used by workflows
 
 
 @dataclass

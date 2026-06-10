@@ -1,8 +1,12 @@
-"""OpenAI-Vision-based grounding and planning provider.
+"""MiniMax-VL-based grounding and planning provider.
 
-Replaces ImageLayerAgent's ``OpenAIVisionPlanner`` and exposes a Protocol-
-compliant ``ground()`` method. The richer ``plan_replacement()`` method is
-also kept as a convenience for the ``XiaohuaReplacementWorkflow``.
+Replaces the OpenAI-Vision planner with MiniMax's chat completions API.
+MiniMax uses the same base URL pattern but requires an extra header:
+  - Authorization: Bearer <api_key>
+  - MiniMax-Group-ID: <group_id>
+
+The underlying /chat/completions endpoint accepts the same image_url content
+type, so the prompt templates and response parsing are preserved unchanged.
 """
 from __future__ import annotations
 
@@ -94,24 +98,30 @@ class ReplacementPlan:
 
 
 class OpenAIVisionPlanner:
-    """VLM planner that uses an OpenAI-compatible chat-completions endpoint."""
+    """VLM planner using MiniMax chat completions with vision support.
 
-    name = "openai_vision"
+    Args:
+        settings: PixelforgeSettings with minimax config populated.
+                  Requires MINIMAX_API_KEY in .env.
+    """
+
+    name = "minimax_vision"
 
     def __init__(self, settings: PixelforgeSettings) -> None:
-        cfg = settings.openai
+        cfg = settings.minimax
         self.api_key = cfg.api_key
         self.base_url = cfg.base_url.rstrip("/")
         self.model = cfg.vision_model
         self.timeout = cfg.request_timeout
         self.enabled = cfg.vision_plan_enabled
         self.available = bool(self.enabled and self.api_key)
+
         if not self.enabled:
-            self.reason = "Vision plan is disabled"
+            self.reason = "MiniMax vision planning is disabled (MINIMAX_VISION_PLAN_ENABLED=0)"
         elif not self.api_key:
-            self.reason = "OPENAI_API_KEY is not configured"
+            self.reason = "MINIMAX_API_KEY is not configured"
         else:
-            self.reason = f"provider=openai_vision, model={self.model}, base_url={self.base_url}"
+            self.reason = f"MiniMax VL: {self.model} → {self.base_url}/chat/completions"
 
     # ── Protocol: GroundingProvider ────────────────────────────────
     def ground(self, image: Image.Image, *, task: str) -> list[GroundedObject]:
@@ -147,8 +157,8 @@ class OpenAIVisionPlanner:
     def _build_replacement_prompt(self, ocr_text: str) -> str:
         preserved = ocr_text or "(none)"
         return (
-            "你正在为一张中文电商海报做产品/人物替换规划。"
-            "输入有两张图：第一张是原图（要替换的目标海报），第二张是产品参考图。"
+            "你正在为一张中文电商海报做产品/人物替换规划。\n"
+            "输入有两张图：第一张是原图（要替换的目标海报），第二张是产品参考图。\n"
             "请输出 JSON：\n"
             "{\n"
             '  "subject_summary": "原图主体一句话",\n'

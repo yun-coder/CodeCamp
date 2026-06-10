@@ -112,6 +112,7 @@ class XiaohuaReplacementWorkflow:
                 raise RuntimeError(
                     "Image edit provider is not configured. Set IMAGE_EDIT_PROVIDER or "
                     "OPENAI_IMAGE_EDIT_ENABLED=1."
+                    "Set MINIMAX_IMAGE_EDIT_ENABLED=1 to enable."
                 )
             edit_mask = self._image_edit_mask(storage, manifest, plan, targets, original.size)
             edit_result = providers.edit.edit_product_replacement(
@@ -186,7 +187,7 @@ class XiaohuaReplacementWorkflow:
         if providers.grounding is None:
             raise RuntimeError(
                 "Vision planner (grounding) is not configured. "
-                "Set OPENAI_API_KEY and OPENAI_VISION_PLAN_ENABLED=1."
+                "Set MINIMAX_API_KEY + MINIMAX_VISION_PLAN_ENABLED=1 to enable."
             )
         plan = providers.grounding.plan_replacement(
             original, product, ocr_text=self._ocr_text(manifest)

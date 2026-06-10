@@ -10,7 +10,8 @@ router = APIRouter(prefix="/api/settings", tags=["settings"])
 
 # Fields that should never be echoed back to the client.
 SECRET_FIELDS = {
-    ("openai", "api_key"),
+    ("minimax", "api_key"),
+    ("minimax", "group_id"),
     ("paddleocr", "access_token"),
     ("image_edit", "custom", "api_key"),
     ("repair", "api_key"),

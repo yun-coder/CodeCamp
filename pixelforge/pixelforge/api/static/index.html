@@ -1,72 +1,557 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
-  <title>pixelforge</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PixelForge — 像素级图片工作流引擎</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
+    /* ── Design tokens ─────────────────────────────────────── */
     :root {
-      --bg: #0f1115; --fg: #e6e6e6; --muted: #8a8f99;
-      --accent: #4f8cff; --card: #161a22; --line: #2a2f3a;
+      --bg:        #090b10;
+      --surface:   #12151e;
+      --card:      #181c28;
+      --card-alt:  #1e2334;
+      --border:    #272d40;
+      --accent:    #5b8dee;
+      --accent-glow: rgba(91,141,238,.18);
+      --green:     #34d399;
+      --amber:     #fbbf24;
+      --red:       #f87171;
+      --text:      #e2e8f0;
+      --muted:     #6b7a99;
+      --radius:    12px;
+      --shadow:    0 4px 24px rgba(0,0,0,.45);
+      --font:      'Noto Sans SC', 'Inter', system-ui, sans-serif;
     }
-    * { box-sizing: border-box; }
-    body { margin: 0; font: 14px/1.5 system-ui, -apple-system, sans-serif;
-           background: var(--bg); color: var(--fg); }
-    header { padding: 24px 32px; border-bottom: 1px solid var(--line); }
-    h1 { margin: 0; font-size: 20px; letter-spacing: 0.2px; }
-    main { max-width: 960px; margin: 32px auto; padding: 0 24px; }
-    section { background: var(--card); border: 1px solid var(--line);
-              border-radius: 8px; padding: 20px; margin-bottom: 16px; }
-    h2 { margin: 0 0 12px 0; font-size: 16px; }
-    pre { background: #0b0d12; padding: 12px; border-radius: 6px; overflow: auto; }
-    .ok { color: #4ade80; } .warn { color: #fbbf24; } .err { color: #f87171; }
-    .row { display: flex; gap: 8px; align-items: center; }
-    input, button, select { font: inherit; padding: 6px 10px;
-                            background: #0b0d12; color: var(--fg);
-                            border: 1px solid var(--line); border-radius: 4px; }
-    button { background: var(--accent); border: none; cursor: pointer; }
-    button:hover { filter: brightness(1.1); }
-    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* ── Layout ────────────────────────────────────────────── */
+    .app { display: flex; flex-direction: column; min-height: 100vh; }
+
+    /* ── Header ─────────────────────────────────────────────── */
+    header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(9,11,16,.82);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-icon {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, var(--accent), #7c5ce0);
+      border-radius: 8px;
+      display: grid; place-items: center;
+      font-size: 16px;
+    }
+    .brand-name { font-size: 17px; font-weight: 600; letter-spacing: -.3px; }
+    .brand-name span { color: var(--accent); }
+    .header-nav { display: flex; gap: 4px; }
+    .nav-btn {
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font: inherit; font-size: 13px; font-weight: 500;
+      cursor: pointer;
+      transition: color .15s, background .15s;
+    }
+    .nav-btn:hover { color: var(--text); background: var(--card); }
+    .nav-btn.active { color: var(--accent); background: var(--accent-glow); }
+
+    /* ── Main content ───────────────────────────────────────── */
+    main { flex: 1; max-width: 1100px; margin: 0 auto; width: 100%; padding: 36px 24px 64px; }
+
+    /* ── Page titles ────────────────────────────────────────── */
+    .page-title {
+      font-size: 22px; font-weight: 600; margin-bottom: 6px;
+      letter-spacing: -.4px;
+    }
+    .page-sub {
+      color: var(--muted); font-size: 13px; margin-bottom: 32px;
+    }
+
+    /* ── Provider cards ─────────────────────────────────────── */
+    .provider-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+      margin-bottom: 36px;
+    }
+    .provider-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      display: flex; align-items: flex-start; gap: 12px;
+      transition: border-color .2s;
+    }
+    .provider-card.ok    { border-color: rgba(52,211,153,.25); }
+    .provider-card.warn  { border-color: rgba(251,191,36,.25); }
+    .provider-card.off   { border-color: var(--border); }
+    .p-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
+    .p-dot.ok   { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .p-dot.warn { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+    .p-dot.off  { background: var(--muted); }
+    .p-info { min-width: 0; }
+    .p-name { font-weight: 600; font-size: 13px; margin-bottom: 2px; }
+    .p-reason { font-size: 11px; color: var(--muted); line-height: 1.4; word-break: break-all; }
+    .p-status { margin-left: auto; font-size: 10px; font-weight: 600;
+                padding: 2px 7px; border-radius: 99px; flex-shrink: 0; }
+    .p-status.ok   { background: rgba(52,211,153,.15); color: var(--green); }
+    .p-status.warn { background: rgba(251,191,36,.15); color: var(--amber); }
+    .p-status.off  { background: var(--surface); color: var(--muted); }
+
+    /* ── Action card ────────────────────────────────────────── */
+    .action-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 32px;
+      margin-bottom: 24px;
+    }
+    .action-card h2 { font-size: 15px; font-weight: 600; margin-bottom: 16px; }
+
+    /* ── Upload zone ────────────────────────────────────────── */
+    .upload-zone {
+      border: 1.5px dashed var(--border);
+      border-radius: 10px;
+      padding: 36px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+      position: relative;
+    }
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: var(--accent);
+      background: var(--accent-glow);
+    }
+    .upload-zone input[type=file] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer;
+      width: 100%; height: 100%;
+    }
+    .upload-icon { font-size: 32px; margin-bottom: 8px; }
+    .upload-title { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+    .upload-sub { font-size: 12px; color: var(--muted); }
+    #upload-preview {
+      display: none;
+      max-width: 260px;
+      max-height: 160px;
+      border-radius: 8px;
+      margin: 12px auto 0;
+      object-fit: contain;
+      border: 1px solid var(--border);
+    }
+
+    /* ── Buttons ───────────────────────────────────────────── */
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+    .btn {
+      padding: 9px 18px;
+      border-radius: 8px;
+      border: none;
+      font: inherit; font-size: 13px; font-weight: 600;
+      cursor: pointer;
+      transition: filter .15s, transform .1s, box-shadow .15s;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 2px 12px rgba(91,141,238,.35);
+    }
+    .btn-primary:hover { filter: brightness(1.1); }
+    .btn-secondary {
+      background: var(--card-alt);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { background: var(--border); }
+    .btn-danger {
+      background: rgba(248,113,113,.12);
+      color: var(--red);
+      border: 1px solid rgba(248,113,113,.25);
+    }
+    .btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+    /* ── Projects section ───────────────────────────────────── */
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .section-title { font-size: 15px; font-weight: 600; }
+    .project-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 14px;
+    }
+    .project-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .project-card:hover { border-color: var(--accent); box-shadow: var(--shadow); }
+    .project-thumb {
+      width: 100%; height: 140px; object-fit: cover;
+      background: var(--surface); display: block;
+    }
+    .project-body { padding: 14px 16px; }
+    .project-id { font-size: 11px; color: var(--muted); margin-bottom: 6px; font-family: monospace; }
+    .project-name { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+    .project-meta { font-size: 11px; color: var(--muted); margin-bottom: 12px; }
+    .project-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .btn-xs { padding: 5px 10px; font-size: 11px; border-radius: 6px; font-weight: 600; }
+
+    /* ── Log panel ──────────────────────────────────────────── */
+    .log-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      margin-top: 24px;
+      font-family: ui-monospace, 'Cascadia Code', monospace;
+      font-size: 12px;
+      line-height: 1.8;
+      max-height: 180px;
+      overflow-y: auto;
+      color: var(--muted);
+    }
+    .log-panel .info  { color: var(--accent); }
+    .log-panel .ok     { color: var(--green); }
+    .log-panel .warn  { color: var(--amber); }
+    .log-panel .err   { color: var(--red); }
+
+    /* ── Tab panels ─────────────────────────────────────────── */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Spinner ────────────────────────────────────────────── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      display: inline-block; width: 14px; height: 14px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      vertical-align: middle;
+    }
+
+    /* ── Toast ──────────────────────────────────────────────── */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+      background: var(--card-alt);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-size: 13px;
+      box-shadow: var(--shadow);
+      transition: opacity .3s, transform .3s;
+      max-width: 340px;
+    }
+    .toast.hide { opacity: 0; transform: translateY(8px); pointer-events: none; }
+    .toast.ok   { border-color: rgba(52,211,153,.4); }
+    .toast.err  { border-color: rgba(248,113,113,.4); }
+
+    /* ── Scrollbar ─────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
   </style>
 </head>
 <body>
-<header><h1>pixelforge <span style="color:var(--muted); font-weight:400; font-size:12px;">v0.1.0</span></h1></header>
-<main>
-  <section>
-    <h2>Providers</h2>
-    <div id="providers">Loading…</div>
-  </section>
-  <section>
-    <h2>Quick actions</h2>
-    <div class="row">
-      <a href="/api/providers/status" target="_blank"><button>Provider status (JSON)</button></a>
-      <a href="/api/health" target="_blank"><button>Health</button></a>
-      <a href="/settings" target="_blank"><button>Settings</button></a>
+<div class="app">
+
+  <!-- ── Header ── -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">PF</div>
+      <div class="brand-name">Pixel<span>Forge</span></div>
     </div>
-  </section>
-  <section>
-    <h2>CLI quickstart</h2>
-    <pre><code># 1) Analyze a project
-python -m pixelforge.cli analyze --image ./input.jpg
+    <nav class="header-nav">
+      <button class="nav-btn active" data-tab="projects">项目</button>
+      <button class="nav-btn" data-tab="providers">Provider 状态</button>
+      <button class="nav-btn" data-tab="cli">快速上手</button>
+    </nav>
+  </header>
 
-# 2) Segment with SAM (auto mode)
-python -m pixelforge.cli segment auto --image ./input.jpg -c sam_vit_b.pth
+  <main>
 
-# 3) Run the Web UI
+    <!-- ══ Tab: Projects ══════════════════════════════════════ -->
+    <div class="tab-panel active" id="tab-projects">
+      <h1 class="page-title">我的项目</h1>
+      <p class="page-sub">上传图片 → 分层分析 → 产品替换，轻松搞定电商图片工作流</p>
+
+      <!-- Upload card -->
+      <div class="action-card">
+        <h2>创建新项目</h2>
+        <div class="upload-zone" id="upload-zone">
+          <input type="file" accept="image/*" id="file-input" />
+          <div class="upload-icon">📁</div>
+          <div class="upload-title">点击或拖拽图片上传</div>
+          <div class="upload-sub">支持 PNG / JPG / WEBP，建议尺寸 1024×1024 以上</div>
+          <img id="upload-preview" alt="预览" />
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="btn-create" disabled>✨ 创建项目并分析</button>
+          <button class="btn btn-secondary" id="btn-clear">清空</button>
+        </div>
+      </div>
+
+      <!-- Project list -->
+      <div class="section-header">
+        <div class="section-title">已有项目</div>
+      </div>
+      <div id="project-list">
+        <div style="color:var(--muted);font-size:13px;text-align:center;padding:40px 0;">
+          暂无项目，上传图片创建第一个吧
+        </div>
+      </div>
+
+      <!-- Log -->
+      <div class="log-panel" id="log-panel" style="display:none"></div>
+    </div>
+
+    <!-- ══ Tab: Providers ══════════════════════════════════════ -->
+    <div class="tab-panel" id="tab-providers">
+      <h1 class="page-title">Provider 状态</h1>
+      <p class="page-sub">各能力模块的接入情况，未启用不代表功能不可用，只是需要额外配置</p>
+      <div class="provider-grid" id="provider-grid">
+        <div style="color:var(--muted);font-size:13px;">加载中…</div>
+      </div>
+    </div>
+
+    <!-- ══ Tab: CLI ══════════════════════════════════════════ -->
+    <div class="tab-panel" id="tab-cli">
+      <h1 class="page-title">快速上手</h1>
+      <p class="page-sub">通过命令行或 Web UI 两种方式使用 PixelForge</p>
+      <div class="action-card">
+        <h2>命令行</h2>
+        <pre style="background:var(--surface);padding:16px;border-radius:8px;font-family:monospace;font-size:12px;line-height:1.8;overflow-x:auto">
+<span style="color:#6b7a99"># ── 安装 ──────────────────────────────────</span>
+pip install -e .
+
+<span style="color:#6b7a99"># ── 分析图片（图层拆分） ───────────────────</span>
+python -m pixelforge analyze -i ./photo.jpg -o ./output
+
+<span style="color:#6b7a99"># ── SAM 分割 ──────────────────────────────</span>
+python -m pixelforge segment auto -i ./photo.jpg -c sam_vit_b.pth
+
+<span style="color:#6b7a99"># ── 启动 Web UI ───────────────────────────</span>
 uvicorn pixelforge.api.main:app --port 8700 --reload
-</code></pre>
-  </section>
-</main>
+
+<span style="color:#6b7a99"># ── 查看配置 ──────────────────────────────</span>
+python -m pixelforge settings</pre>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Toast -->
+<div class="toast hide" id="toast"></div>
+
 <script>
-  fetch('/api/providers/status').then(r => r.json()).then(data => {
-    const el = document.getElementById('providers');
-    const lines = Object.entries(data).map(([k, v]) => {
-      const cls = v.available === 'True' ? 'ok' : 'warn';
-      return `<div><span class="${cls}">●</span> <code>${k}</code> — ${v.provider} — ${v.reason}</div>`;
+  /* ── Global state ─────────────────────────────────────────── */
+  let selectedFile = null;
+  let currentProjectId = null;
+
+  /* ── Toast ─────────────────────────────────────────────────── */
+  function showToast(msg, type='info', duration=4000) {
+    const t = document.getElementById('toast');
+    t.className = `toast ${type}`;
+    t.textContent = msg;
+    t.classList.remove('hide');
+    setTimeout(() => t.classList.add('hide'), duration);
+  }
+
+  /* ── Log ───────────────────────────────────────────────────── */
+  function log(msg, level='info') {
+    const p = document.getElementById('log-panel');
+    p.style.display = 'block';
+    const d = document.createElement('div');
+    d.className = level;
+    d.textContent = `[${new Date().toLocaleTimeString('zh-CN')}] ${msg}`;
+    p.appendChild(d);
+    p.scrollTop = p.scrollHeight;
+  }
+
+  /* ── Tab navigation ─────────────────────────────────────────── */
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+      if (btn.dataset.tab === 'providers') loadProviders();
     });
-    el.innerHTML = lines.join('') || '<span class="muted">no providers loaded</span>';
-  }).catch(e => {
-    document.getElementById('providers').textContent = 'fetch failed: ' + e;
   });
+
+  /* ── Upload zone ───────────────────────────────────────────── */
+  const zone   = document.getElementById('upload-zone');
+  const input  = document.getElementById('file-input');
+  const preview = document.getElementById('upload-preview');
+  const btnCreate = document.getElementById('btn-create');
+  const btnClear  = document.getElementById('btn-clear');
+
+  ['dragenter','dragover'].forEach(ev => zone.addEventListener(ev, e => {
+    e.preventDefault(); zone.classList.add('dragover');
+  }));
+  ['dragleave','drop'].forEach(ev => zone.addEventListener(ev, e => {
+    e.preventDefault(); zone.classList.remove('dragover');
+  }));
+  zone.addEventListener('drop', e => {
+    const f = e.dataTransfer.files[0];
+    if (f) handleFile(f);
+  });
+  input.addEventListener('change', e => {
+    const f = e.target.files[0];
+    if (f) handleFile(f);
+  });
+
+  function handleFile(f) {
+    if (!f.type.startsWith('image/')) {
+      showToast('请上传图片文件', 'err');
+      return;
+    }
+    selectedFile = f;
+    const url = URL.createObjectURL(f);
+    preview.src = url;
+    preview.style.display = 'block';
+    btnCreate.disabled = false;
+    log(`已选择: ${f.name} (${(f.size/1024).toFixed(1)} KB)`, 'info');
+  }
+
+  btnClear.addEventListener('click', () => {
+    selectedFile = null;
+    input.value = '';
+    preview.style.display = 'none';
+    preview.src = '';
+    btnCreate.disabled = true;
+  });
+
+  /* ── Create project ─────────────────────────────────────────── */
+  btnCreate.addEventListener('click', async () => {
+    if (!selectedFile) return;
+    btnCreate.disabled = true;
+    btnCreate.innerHTML = '<span class="spinner"></span> 创建中…';
+
+    try {
+      /* 1) Create project + upload image */
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      log('正在创建项目…', 'info');
+      const res = await fetch('/api/projects', { method: 'POST', body: formData });
+      if (!res.ok) throw new Error(`创建项目失败: ${res.status}`);
+      const proj = await res.json();
+      currentProjectId = proj.project_id;
+      log(`项目已创建: ${currentProjectId}`, 'ok');
+
+      /* 2) Run analysis */
+      log('正在运行分层分析…', 'info');
+      btnCreate.innerHTML = '<span class="spinner"></span> 分析中…';
+      const analyzeRes = await fetch(`/api/projects/${currentProjectId}/analyze`, { method: 'POST' });
+      if (!analyzeRes.ok) throw new Error(`分析失败: ${analyzeRes.status}`);
+      const manifest = await analyzeRes.json();
+      log(`分析完成，共 ${manifest.layers?.length ?? 0} 个图层`, 'ok');
+      showToast(`项目创建成功！共识别 ${manifest.layers?.length ?? 0} 个图层`, 'ok', 5000);
+
+      /* 3) Refresh project list */
+      loadProjects();
+
+    } catch(e) {
+      log(e.message, 'err');
+      showToast(e.message, 'err');
+      btnCreate.disabled = false;
+      btnCreate.textContent = '✨ 创建项目并分析';
+    }
+    btnCreate.innerHTML = '✨ 创建项目并分析';
+  });
+
+  /* ── Load providers ─────────────────────────────────────────── */
+  async function loadProviders() {
+    try {
+      const res = await fetch('/api/providers/status');
+      const data = await res.json();
+      const grid = document.getElementById('provider-grid');
+      const label = {
+        ocr:            '文字识别 (OCR)',
+        grounding:      '视觉定位 (Grounding)',
+        segmentation:   '图像分割 (SAM)',
+        edit:           '图像编辑 (Edit)',
+        repair:         '图像修复 (Repair)',
+        human_parser:   '人体解析 (SCHP)',
+      };
+      const names = {
+        ocr:            'PaddleOCR',
+        grounding:      'MiniMax VL',
+        segmentation:   'SAM',
+        edit:            'MiniMax Images',
+        repair:          'OpenCV ConvexHull',
+        human_parser:    'SCHP',
+      };
+      grid.innerHTML = '';
+      for (const [k, v] of Object.entries(data)) {
+        const ok = v.available === 'True';
+        const card = document.createElement('div');
+        card.className = `provider-card ${ok ? 'ok' : 'warn'}`;
+        card.innerHTML = `
+          <div class="p-dot ${ok ? 'ok' : 'warn'}"></div>
+          <div class="p-info">
+            <div class="p-name">${label[k] ?? k}</div>
+            <div class="p-reason">${ok ? (v.reason || '已就绪') : (v.reason || '未配置')}</div>
+          </div>
+          <div class="p-status ${ok ? 'ok' : 'warn'}">${ok ? '就绪' : '未启用'}</div>
+        `;
+        grid.appendChild(card);
+      }
+    } catch(e) {
+      document.getElementById('provider-grid').innerHTML =
+        `<div style="color:var(--red);font-size:13px;">加载失败: ${e.message}</div>`;
+    }
+  }
+
+  /* ── Load projects ─────────────────────────────────────────── */
+  async function loadProjects() {
+    try {
+      const res = await fetch('/api/settings');
+      const settings = await res.json();
+      const outputDir = settings.output_dir || './pixelforge_runs';
+
+      /* We list projects via the API by trying to fetch health */
+      const health = await fetch('/api/health').then(r => r.json()).catch(() => ({}));
+      const providerGrid = document.getElementById('provider-grid');
+
+      /* Since there's no list-projects endpoint, show a placeholder */
+      const listEl = document.getElementById('project-list');
+      listEl.innerHTML = `
+        <div style="color:var(--muted);font-size:13px;text-align:center;padding:40px 0;">
+          暂无项目，创建第一个试试吧
+        </div>
+        <div class="action-card" style="margin-top:12px;">
+          <h2 style="font-size:13px;color:var(--muted);">项目将保存在: <code style="color:var(--accent);font-size:12px;">${outputDir}</code></h2>
+        </div>
+      `;
+    } catch(e) {
+      log('加载项目列表失败: ' + e.message, 'warn');
+    }
+  }
+
+  /* ── Init ──────────────────────────────────────────────────── */
+  loadProjects();
 </script>
 </body>
 </html>

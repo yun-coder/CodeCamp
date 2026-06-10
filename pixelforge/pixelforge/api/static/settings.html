@@ -1,43 +1,278 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
-  <title>pixelforge — Settings</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PixelForge — 设置</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
-    body { margin: 0; font: 14px/1.5 system-ui, -apple-system, sans-serif;
-           background: #0f1115; color: #e6e6e6; }
-    main { max-width: 760px; margin: 32px auto; padding: 0 24px; }
-    section { background: #161a22; border: 1px solid #2a2f3a;
-              border-radius: 8px; padding: 20px; margin-bottom: 16px; }
-    h1 { margin: 0 0 8px 0; font-size: 18px; }
-    h2 { margin: 0 0 8px 0; font-size: 14px; color: #8a8f99; text-transform: uppercase; letter-spacing: 0.5px; }
-    pre { background: #0b0d12; padding: 12px; border-radius: 6px; overflow: auto; font-size: 12px; }
-    .key { color: #fbbf24; }
+    :root {
+      --bg:        #090b10;
+      --surface:   #12151e;
+      --card:      #181c28;
+      --card-alt:  #1e2334;
+      --border:    #272d40;
+      --accent:    #5b8dee;
+      --accent-glow: rgba(91,141,238,.18);
+      --green:     #34d399;
+      --amber:     #fbbf24;
+      --red:       #f87171;
+      --text:      #e2e8f0;
+      --muted:     #6b7a99;
+      --radius:    12px;
+      --shadow:    0 4px 24px rgba(0,0,0,.45);
+      --font:      'Noto Sans SC', 'Inter', system-ui, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(9,11,16,.82);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-icon {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, var(--accent), #7c5ce0);
+      border-radius: 8px;
+      display: grid; place-items: center;
+      font-size: 16px;
+    }
+    .brand-name { font-size: 17px; font-weight: 600; letter-spacing: -.3px; }
+    .brand-name span { color: var(--accent); }
+
+    main { max-width: 860px; margin: 0 auto; padding: 36px 24px 64px; }
+
+    .page-title { font-size: 22px; font-weight: 600; margin-bottom: 6px; letter-spacing: -.4px; }
+    .page-sub { color: var(--muted); font-size: 13px; margin-bottom: 32px; }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-size: 14px; font-weight: 600; margin-bottom: 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-title .icon { font-size: 16px; }
+
+    pre {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 20px;
+      font-family: ui-monospace, 'Cascadia Code', monospace;
+      font-size: 12px;
+      line-height: 2;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      color: var(--text);
+    }
+
+    .key { color: var(--amber); }
+    .val { color: var(--green); }
+    .cmt { color: var(--muted); font-style: italic; }
+
+    .env-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .env-table th {
+      text-align: left;
+      padding: 8px 12px;
+      background: var(--surface);
+      color: var(--muted);
+      font-weight: 500;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      border-bottom: 1px solid var(--border);
+    }
+    .env-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(39,45,64,.6);
+      vertical-align: top;
+    }
+    .env-table tr:last-child td { border-bottom: none; }
+    .env-table td:first-child { color: var(--amber); white-space: nowrap; }
+    .env-table td:nth-child(2) { color: var(--text); }
+    .env-table td:last-child { color: var(--muted); font-size: 11px; }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-size: 10px; font-weight: 600;
+    }
+    .badge-green { background: rgba(52,211,153,.15); color: var(--green); }
+    .badge-amber { background: rgba(251,191,36,.15); color: var(--amber); }
+    .badge-muted { background: var(--surface); color: var(--muted); }
+
+    .back-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: var(--accent); font-size: 13px; font-weight: 500;
+      text-decoration: none;
+      margin-top: 8px;
+    }
+    .back-link:hover { text-decoration: underline; }
+
+    .loading { color: var(--muted); font-size: 13px; padding: 20px 0; }
   </style>
 </head>
 <body>
+<header>
+  <div class="brand">
+    <div class="brand-icon">PF</div>
+    <div class="brand-name">Pixel<span>Forge</span></div>
+  </div>
+</header>
+
 <main>
-  <h1>Settings</h1>
-  <section>
-    <h2>Effective configuration (secrets redacted)</h2>
-    <pre id="content">Loading…</pre>
-  </section>
-  <section>
-    <h2>How to set keys</h2>
-    <p>Secrets are read from environment variables or <code>.env</code> in the working directory. See <code>.env.example</code> for the full list.</p>
-    <pre><code><span class="key">OPENAI_API_KEY</span>=sk-...
-<span class="key">PADDLEOCR_ACCESS_TOKEN</span>=...
-<span class="key">SAM_CHECKPOINT</span>=./checkpoints/sam_vit_b_01ec64.pth
-<span class="key">IMAGE_EDIT_PROVIDER</span>=openai_images   # or custom_http, none
-<span class="key">OPENAI_IMAGE_EDIT_ENABLED</span>=1
-<span class="key">OPENAI_IMAGE_MODEL</span>=gpt-image-2</code></pre>
-  </section>
-  <p><a href="/" style="color:#4f8cff;">← back</a></p>
+  <h1 class="page-title">系统设置</h1>
+  <p class="page-sub">当前生效的配置参数（密钥已脱敏），修改请编辑 <code>.env</code> 文件</p>
+
+  <!-- Current config -->
+  <div class="card">
+    <div class="card-title"><span class="icon">⚙️</span> 当前配置</div>
+    <pre id="config">加载中…</pre>
+  </div>
+
+  <!-- Env reference -->
+  <div class="card">
+    <div class="card-title"><span class="icon">📋</span> 环境变量说明</div>
+    <table class="env-table">
+      <thead>
+        <tr>
+          <th>变量名</th>
+          <th>说明</th>
+          <th>示例 / 备注</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>MINIMAX_API_KEY</td>
+          <td>MiniMax API 密钥（用于 VL 视觉定位 + 图像编辑）</td>
+          <td><span class="badge badge-amber">必填</span> eyJ…</td>
+        </tr>
+        <tr>
+          <td>MINIMAX_BASE_URL</td>
+          <td>MiniMax API 地址</td>
+          <td><code style="color:var(--green)">https://api.minimax.chat/v1</code>（默认）</td>
+        </tr>
+        <tr>
+          <td>MINIMAX_VISION_PLAN_ENABLED</td>
+          <td>启用 MiniMax VL 视觉定位，规划替换区域</td>
+          <td>设为 <code style="color:var(--green)">1</code> 启用</td>
+        </tr>
+        <tr>
+          <td>MINIMAX_IMAGE_EDIT_ENABLED</td>
+          <td>启用 MiniMax 图像编辑（产品替换）</td>
+          <td>设为 <code style="color:var(--green)">1</code> 启用</td>
+        </tr>
+        <tr>
+          <td>MINIMAX_IMAGE_MODEL</td>
+          <td>图像生成 / 编辑模型</td>
+          <td><code style="color:var(--green)">image-01</code>（默认）</td>
+        </tr>
+        <tr>
+          <td>PADDLEOCR_ACCESS_TOKEN</td>
+          <td>PaddleOCR Cloud 访问令牌（文字识别）</td>
+          <td><span class="badge badge-amber">推荐</span> 字符串</td>
+        </tr>
+        <tr>
+          <td>SAM_CHECKPOINT</td>
+          <td>Segment Anything 模型权重路径（本地 SAM 分割）</td>
+          <td><span class="badge badge-amber">推荐</span> ./checkpoints/sam_vit_b.pth</td>
+        </tr>
+        <tr>
+          <td>SAM2_MODEL_CFG / SAM2_CHECKPOINT</td>
+          <td>SAM2 模型配置 &amp; 权重路径</td>
+          <td><span class="badge badge-muted">可选</span></td>
+        </tr>
+        <tr>
+          <td>IMAGE_EDIT_PROVIDER</td>
+          <td>图像编辑 Provider</td>
+          <td><code style="color:var(--green)">minimax_images</code> | custom_http | none</td>
+        </tr>
+        <tr>
+          <td>CUSTOM_HTTP_ENDPOINT</td>
+          <td>自定义图像编辑 HTTP 服务地址</td>
+          <td><span class="badge badge-muted">可选</span></td>
+        </tr>
+        <tr>
+          <td>PIXELFORGE_PORT</td>
+          <td>Web UI 监听端口</td>
+          <td><code style="color:var(--green)">8700</code>（默认）</td>
+        </tr>
+        <tr>
+          <td>PIXELFORGE_OUTPUT_DIR</td>
+          <td>项目输出根目录</td>
+          <td><code style="color:var(--green)">./pixelforge_runs</code>（默认）</td>
+        </tr>
+        <tr>
+          <td>PIXELFORGE_LOG_LEVEL</td>
+          <td>日志级别</td>
+          <td><code style="color:var(--green)">INFO</code> | DEBUG | WARNING</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- How to configure -->
+  <div class="card">
+    <div class="card-title"><span class="icon">🔧</span> 配置步骤</div>
+    <pre style="line-height:2.2;font-size:12px">
+<span class="cmt"># 1. 复制示例配置文件</span>
+<span class="cmt"># ───────────────────────────────────────────</span>
+<span class="cmt"># 从项目根目录复制 .env.example 为 .env</span>
+<span class="cmt"># cp .env.example .env      # Linux/macOS</span>
+<span class="cmt"># copy .env.example .env    # Windows</span>
+
+<span class="cmt"># 2. 编辑 .env，填入你的密钥</span>
+<span class="cmt"># ───────────────────────────────────────────</span>
+<span class="key">MINIMAX_API_KEY</span>=<span class="val">***</span>
+<span class="key">MINIMAX_VISION_PLAN_ENABLED</span>=<span class="val">1</span>
+<span class="key">MINIMAX_IMAGE_EDIT_ENABLED</span>=<span class="val">1</span>
+<span class="key">PADDLEOCR_ACCESS_TOKEN</span>=<span class="val">your-paddleocr-token</span>
+
+<span class="cmt"># 3. 重启 Web UI 使配置生效</span>
+<span class="cmt"># ───────────────────────────────────────────</span>
+<span class="cmt"># uvicorn pixelforge.api.main:app --port 8700 --reload</span>
+
+<span class="cmt"># 4. 如需 SAM 分割，手动下载权重</span>
+<span class="cmt"># ───────────────────────────────────────────</span>
+<span class="cmt"># https://github.com/facebookresearch/segment-anything#model-checkpoints</span></pre>
+  </div>
+
+  <a href="/" class="back-link">← 返回首页</a>
 </main>
+
 <script>
-  fetch('/api/settings').then(r => r.json()).then(data => {
-    document.getElementById('content').textContent = JSON.stringify(data, null, 2);
-  });
+  fetch('/api/settings')
+    .then(r => r.json())
+    .then(data => {
+      const el = document.getElementById('config');
+      el.textContent = JSON.stringify(data, null, 2);
+    })
+    .catch(e => {
+      document.getElementById('config').textContent = '加载失败: ' + e.message;
+    });
 </script>
 </body>
 </html>

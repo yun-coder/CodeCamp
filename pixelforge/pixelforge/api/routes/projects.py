@@ -80,6 +80,6 @@ def download_package(project_id: str, request: Request):
 
 
 @router.delete("/{project_id}", status_code=204)
-def delete_project(project_id: str, request: Request) -> None:
+def delete_project(project_id: str, request: Request):
     storage = _storage(request)
     storage.delete_project(project_id)
