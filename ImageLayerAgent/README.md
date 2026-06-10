@@ -1,5 +1,15 @@
 # ImageLayerAgent
 
+> ⚠️ **ARCHIVED** — ImageLayerAgent 已迁移到 **[pixelforge](../pixelforge)**。本仓库不再维护。
+> 
+> - 新代码、文档、安装说明：`D:\学习院\CodeCamp\pixelforge`
+> - 迁移设计与路线图：`D:\学习院\CodeCamp\meta-workflow\ANALYSIS.md`
+> - 旧仓库将保留 1 个版本周期供回滚，之后归档。
+> 
+> 旧 API 端点（`POST /api/projects`、`POST /api/projects/{id}/analyze` 等）在 pixelforge 中路径和 payload 完全兼容 —— 只需把 base URL 从 8710 切到 8700。
+
+---
+
 ImageLayerAgent 当前主线是“小画”的电商图片替换工作流：用户上传原图和产品图，系统通过 PaddleOCR 识别原图中的文字和版式锚点，再由视觉规划模型判断要替换的人物/商品区域，最后调用图片编辑模型生成替换结果，并在最上层重新覆盖原图文字。
 
 ## 当前能力

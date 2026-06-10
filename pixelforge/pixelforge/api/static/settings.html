@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>pixelforge — Settings</title>
+  <style>
+    body { margin: 0; font: 14px/1.5 system-ui, -apple-system, sans-serif;
+           background: #0f1115; color: #e6e6e6; }
+    main { max-width: 760px; margin: 32px auto; padding: 0 24px; }
+    section { background: #161a22; border: 1px solid #2a2f3a;
+              border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+    h1 { margin: 0 0 8px 0; font-size: 18px; }
+    h2 { margin: 0 0 8px 0; font-size: 14px; color: #8a8f99; text-transform: uppercase; letter-spacing: 0.5px; }
+    pre { background: #0b0d12; padding: 12px; border-radius: 6px; overflow: auto; font-size: 12px; }
+    .key { color: #fbbf24; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Settings</h1>
+  <section>
+    <h2>Effective configuration (secrets redacted)</h2>
+    <pre id="content">Loading…</pre>
+  </section>
+  <section>
+    <h2>How to set keys</h2>
+    <p>Secrets are read from environment variables or <code>.env</code> in the working directory. See <code>.env.example</code> for the full list.</p>
+    <pre><code><span class="key">OPENAI_API_KEY</span>=sk-...
+<span class="key">PADDLEOCR_ACCESS_TOKEN</span>=...
+<span class="key">SAM_CHECKPOINT</span>=./checkpoints/sam_vit_b_01ec64.pth
+<span class="key">IMAGE_EDIT_PROVIDER</span>=openai_images   # or custom_http, none
+<span class="key">OPENAI_IMAGE_EDIT_ENABLED</span>=1
+<span class="key">OPENAI_IMAGE_MODEL</span>=gpt-image-2</code></pre>
+  </section>
+  <p><a href="/" style="color:#4f8cff;">← back</a></p>
+</main>
+<script>
+  fetch('/api/settings').then(r => r.json()).then(data => {
+    document.getElementById('content').textContent = JSON.stringify(data, null, 2);
+  });
+</script>
+</body>
+</html>

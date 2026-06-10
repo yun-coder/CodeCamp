@@ -1,5 +1,23 @@
 # SAM Agent Tool
 
+> ⚠️ **ARCHIVED** — sam-agent-tool 已迁移到 **[pixelforge](../pixelforge)**。本仓库不再维护。
+>
+> - 新代码、文档、安装说明：`D:\学习院\CodeCamp\pixelforge`
+> - 迁移设计与路线图：`D:\学习院\CodeCamp\meta-workflow\ANALYSIS.md`
+> - 旧仓库将保留 1 个版本周期供回滚，之后归档。
+>
+> 旧 CLI（`python -m sam_agent_tool auto -i image.jpg`）在 pixelforge 中对应：
+> ```bash
+> pip install -e ".[sam]"          # 装 SAM 依赖
+> python -m pixelforge segment auto -i image.jpg -c sam_vit_b.pth
+> ```
+> 旧 SDK（`from sam_agent_tool import SAMTool`）在 pixelforge 中对应：
+> ```python
+> from pixelforge.providers.segment import SAMLocalSegmenter
+> ```
+
+---
+
 基于 Meta AI 的 [Segment Anything Model (SAM)](https://github.com/facebookresearch/segment-anything) 封装的分割工具，支持 **CLI 命令行** 和 **Python SDK** 两种使用方式，输出结构化 JSON + 裁剪物体图 + 可视化叠加图，适合作为 agent 工作流的标准组件。
 
 ## 安装

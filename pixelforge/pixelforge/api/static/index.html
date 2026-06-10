@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>pixelforge</title>
+  <style>
+    :root {
+      --bg: #0f1115; --fg: #e6e6e6; --muted: #8a8f99;
+      --accent: #4f8cff; --card: #161a22; --line: #2a2f3a;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 14px/1.5 system-ui, -apple-system, sans-serif;
+           background: var(--bg); color: var(--fg); }
+    header { padding: 24px 32px; border-bottom: 1px solid var(--line); }
+    h1 { margin: 0; font-size: 20px; letter-spacing: 0.2px; }
+    main { max-width: 960px; margin: 32px auto; padding: 0 24px; }
+    section { background: var(--card); border: 1px solid var(--line);
+              border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+    h2 { margin: 0 0 12px 0; font-size: 16px; }
+    pre { background: #0b0d12; padding: 12px; border-radius: 6px; overflow: auto; }
+    .ok { color: #4ade80; } .warn { color: #fbbf24; } .err { color: #f87171; }
+    .row { display: flex; gap: 8px; align-items: center; }
+    input, button, select { font: inherit; padding: 6px 10px;
+                            background: #0b0d12; color: var(--fg);
+                            border: 1px solid var(--line); border-radius: 4px; }
+    button { background: var(--accent); border: none; cursor: pointer; }
+    button:hover { filter: brightness(1.1); }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  </style>
+</head>
+<body>
+<header><h1>pixelforge <span style="color:var(--muted); font-weight:400; font-size:12px;">v0.1.0</span></h1></header>
+<main>
+  <section>
+    <h2>Providers</h2>
+    <div id="providers">Loading…</div>
+  </section>
+  <section>
+    <h2>Quick actions</h2>
+    <div class="row">
+      <a href="/api/providers/status" target="_blank"><button>Provider status (JSON)</button></a>
+      <a href="/api/health" target="_blank"><button>Health</button></a>
+      <a href="/settings" target="_blank"><button>Settings</button></a>
+    </div>
+  </section>
+  <section>
+    <h2>CLI quickstart</h2>
+    <pre><code># 1) Analyze a project
+python -m pixelforge.cli analyze --image ./input.jpg
+
+# 2) Segment with SAM (auto mode)
+python -m pixelforge.cli segment auto --image ./input.jpg -c sam_vit_b.pth
+
+# 3) Run the Web UI
+uvicorn pixelforge.api.main:app --port 8700 --reload
+</code></pre>
+  </section>
+</main>
+<script>
+  fetch('/api/providers/status').then(r => r.json()).then(data => {
+    const el = document.getElementById('providers');
+    const lines = Object.entries(data).map(([k, v]) => {
+      const cls = v.available === 'True' ? 'ok' : 'warn';
+      return `<div><span class="${cls}">●</span> <code>${k}</code> — ${v.provider} — ${v.reason}</div>`;
+    });
+    el.innerHTML = lines.join('') || '<span class="muted">no providers loaded</span>';
+  }).catch(e => {
+    document.getElementById('providers').textContent = 'fetch failed: ' + e;
+  });
+</script>
+</body>
+</html>

@@ -72,6 +72,7 @@
       <excludeFolder url="file://$MODULE_DIR$/mini-coffee-town/.idea" />
       <excludeFolder url="file://$MODULE_DIR$/project-helper/backend/build" />
       <excludeFolder url="file://$MODULE_DIR$/project-helper/build" />
+      <excludeFolder url="file://$MODULE_DIR$/pixelforge/.venv" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
