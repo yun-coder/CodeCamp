@@ -1,2 +1,0 @@
-"""ImageLayerAgent application package."""
-

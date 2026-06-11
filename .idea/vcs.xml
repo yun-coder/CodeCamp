@@ -15,6 +15,7 @@
     <mapping directory="$PROJECT_DIR$/career-ops" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/hello-agents" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/html-ppt-skill" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/html-video" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/huobao-drama" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/local-deep-research" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/mmdetection3d" vcs="Git" />
