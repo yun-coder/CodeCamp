@@ -23,4 +23,5 @@ rad.json
 TestResults.xml
 
 node_modules/
-.idea/
+.idea、
+.claude/
