@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MediaPipe 视觉特效实验台</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark"></span>
+          <div>
+            <h1>Vision FX</h1>
+            <p>手势与面部动作识别</p>
+          </div>
+        </div>
+        <nav id="solutionNav" class="solution-nav" aria-label="视觉识别特效"></nav>
+      </aside>
+
+      <main class="workspace">
+        <section class="topbar">
+          <div>
+            <p class="eyebrow">MediaPipe Tasks · 本地视觉特效</p>
+            <h2 id="solutionTitle">加载中</h2>
+          </div>
+          <div class="top-actions">
+            <button id="startCamera" class="primary-button" type="button">启动摄像头</button>
+            <button id="stopCamera" class="icon-button" type="button" title="停止摄像头">■</button>
+          </div>
+        </section>
+
+        <section class="preview-grid">
+          <div class="preview-panel">
+            <div class="stage-toolbar">
+              <span id="runtimeBadge" class="badge">网页演示</span>
+              <span id="statusText" class="status">准备就绪</span>
+            </div>
+            <div class="stage" id="stage">
+              <video id="camera" playsinline muted></video>
+              <canvas id="overlay"></canvas>
+              <div id="fallbackScene" class="fallback-scene"></div>
+            </div>
+          </div>
+
+          <aside class="inspector">
+            <div class="inspector-section">
+              <h3>效果</h3>
+              <p id="solutionSummary"></p>
+            </div>
+            <div class="inspector-section">
+              <h3>输入</h3>
+              <div id="controlMount" class="control-mount"></div>
+            </div>
+            <div class="inspector-section">
+              <h3>输出</h3>
+              <div id="outputMount" class="output-mount"></div>
+            </div>
+          </aside>
+        </section>
+      </main>
+    </div>
+
+    <script src="./assets/p5.min.js"></script>
+    <script type="module" src="./app.js?v=vision-fx-2tabs"></script>
+  </body>
+</html>
