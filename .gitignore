@@ -1,27 +1,128 @@
-### AL ###
-#Template for AL projects for Dynamics 365 Business Central
-#launch.json folder
+# CodeCamp root ignore rules
+
+# Editors and local workspace metadata
+.idea/
 .vscode/
-#Cache folder
-.alcache/
-#Symbols folder
-.alpackages/
-#Snapshots folder
-.snapshots/
-#Testing Output folder
+.claude/
+*.code-workspace
+*.sublime-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+*.crt
+secrets.*
+
+# Logs and temporary files
+*.log
+logs/
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.python-version
+.venv/
+venv/
+env/
+ENV/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+dist/
+build/
+*.egg-info/
+.ipynb_checkpoints/
+
+# Node / frontend
+node_modules/
+.npm/
+.pnpm-store/
+.yarn/
+dist/
+build/
+.next/
+.nuxt/
 .output/
-#Extension App-file
+.vite/
+coverage/
+playwright-report/
+test-results/
+
+# Package manager logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# AI / ML local artifacts
+models/
+checkpoints/
+weights/
+outputs/
+output/
+runs/
+wandb/
+mlruns/
+*.ckpt
+*.pt
+*.pth
+*.safetensors
+*.onnx
+
+# Databases and local data
+*.db
+*.sqlite
+*.sqlite3
+*.duckdb
+data/
+
+# Media/render outputs
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.webm
+*.wav
+*.mp3
+*.flac
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+*.rar
+
+# Dynamics 365 Business Central / AL
+.alcache/
+.alpackages/
+.snapshots/
 *.app
-#Rapid Application Development File
 rad.json
-#Translation Base-file
 *.g.xlf
-#License-files
 *.bclicense
 *.flf
-#Test results file
 TestResults.xml
-
-node_modules/
-.idea、
-.claude/

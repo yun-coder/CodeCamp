@@ -1,44 +1,61 @@
 # CodeCamp
 
-个人学习项目集合 —— 汇集多个 AI、工具、平台类开源项目的学习与实验仓库。
+个人 AI 学习项目集合。这个仓库用于集中索引、保存和实验多个 AI、Agent、RAG、视频生成、金融数据、工具平台类项目，方便横向学习、对比技术栈和沉淀本地实践。
 
-> **最后更新：** 2026-06-11 | **项目总数：** 23 个（18 个有远程仓库 + 5 个本地项目）
+> 最后更新：2026-06-12  
+> 当前目录：23 个非隐藏目录，其中 22 个项目目录 + 1 个资料目录  
+> 项目口径：19 个外部 gitlink 项目 + 3 个本地项目
 
----
+## 项目识别
 
-## 📋 项目列表（按字母排序）
+- **仓库定位**：个人学习型 monorepo / 项目索引仓库。
+- **主要主题**：AI Agent、LLM 应用、RAG、MCP、视频生成、虚拟试穿、3D 检测、金融数据、桌面工具和学习资料。
+- **组织方式**：根目录负责索引与通用忽略规则；各子项目保留自己的 README、依赖文件和运行方式。
+- **维护重点**：新增、删除或替换根目录项目时，同步更新本 README 的数量、项目表和说明。
 
-| 项目 | 简介 | 仓库 |
-|------|------|------|
-| **agency-agents** | AI 代理人格库，用 Markdown 定义大量专业代理（工程、设计、营销等），可快速在多工具中复用 | [GitHub](https://github.com/msitarzewski/agency-agents) ⭐110k |
-| **awesome-ai-apps** | 实用 AI 应用示例集合，收录 80+ 个 LLM 应用示例和教程，含 Agents、RAG、MCP 等分类 | [GitHub](https://github.com/Arindam200/awesome-ai-apps) ⭐12.8k |
-| **BuildingAI** | AI 智能体应用平台，Agent 构建器 + 知识库 RAG + MCP 工具调用 + 模型聚合，支持多租户计费 | [GitHub](https://github.com/BidingCC/BuildingAI) ⭐1.7k |
-| **career-ops** | AI 驱动的求职/Offer 管理系统，自动评估职位、生成 ATS 优化简历 PDF、批量处理 Offer | [GitHub](https://github.com/santifer/career-ops) ⭐52.6k |
-| **Hands-On-Large-Language-Models** | 《Hands-On Large Language Models》配套实战代码，12 章 Jupyter 笔记本覆盖 LLM 核心概念 | [GitHub](https://github.com/HandsOnLLM/Hands-On-Large-Language-Models) ⭐26.9k |
-| **hello-agents** | 中文系统化智能体教程：从概念、原理到实战，涵盖 ReAct、Plan-Solve、Reflection 等范式 | [GitHub](https://github.com/datawhalechina/hello-agents) ⭐58.4k |
-| **Horizon** | AI 驱动的新闻雷达，多源聚合、AI 评分筛选，生成中英双语每日简报 | [GitHub](https://github.com/Thysrael/Horizon) ⭐5.9k |
-| **html-ppt-skill** | HTML 演示文稿生成技能，36 套主题、15 套模板、47 种动画效果，零构建依赖 | [GitHub](https://github.com/lewislulu/html-ppt-skill) ⭐5.9k |
-| **html-video** | 开源元层框架，让 AI 编程 Agent 将 HTML 渲染为 MP4 视频，支持多引擎（Hyperframes、Remotion）、可视化 Studio 和 AI 配乐 | [GitHub](https://github.com/nexu-io/html-video) ⭐2.8k |
-| **huobao-drama** | AI 短剧自动化生产平台，5 个专用 AI Agent，文生图/TTS/FFmpeg 合成管线 | [GitHub](https://github.com/chatfire-AI/huobao-drama) ⭐12.7k |
-| **IDM-VTON** | 基于扩散模型的虚拟试穿系统，将服装合成到人物照片，支持 Gradio Web Demo | [GitHub](https://github.com/yisol/IDM-VTON) ⭐5.1k |
-| **JoyAI-Echo** | 京东开源的分秒级多镜头音视频生成框架，DMD 蒸馏少步生成器 + 跨模态记忆库实现故事级一致性，支持对话式编辑 | [GitHub](https://github.com/jd-opensource/JoyAI-Echo) ⭐1.4k |
-| **local-deep-research** | 本地化深度研究助手，支持多 LLM 和多检索引擎，注重隐私与安全 | [GitHub](https://github.com/LearningCircuit/local-deep-research) ⭐8.4k |
-| **mmdetection3d** | OpenMMLab 基于 PyTorch 的 3D 目标检测工具箱，支持多模态/单模态检测器，覆盖室内外场景 | [GitHub](https://github.com/open-mmlab/mmdetection3d) ⭐6.4k |
-| **MoneyPrinterTurbo** | AI 一键生成高清短视频，自动完成脚本→配音→字幕→素材→合成全流程 | [GitHub](https://github.com/harry0703/MoneyPrinterTurbo) ⭐85.4k |
-| **OpenMAIC** | 多代理互动课堂平台，自动生成课程大纲、幻灯片、测验和互动模拟 | [GitHub](https://github.com/THU-MAIC/OpenMAIC) ⭐18.5k |
-| **project-helper** | 项目学习助手，Vue 3 + Python 前后端，输入 GitHub 地址自动克隆分析生成源码学习报告，支持流式问答 | *(本地项目)* |
-| **RuView** | 基于 WiFi CSI 信号的空间智能平台，无摄像头人体感知、呼吸心率监测 | [GitHub](https://github.com/ruvnet/RuView) ⭐73.0k |
-| **yao-open-prompts** | 中文 AI 提示词开源库，116+ 提示词按 9 大场景分类，含英文镜像版 | [GitHub](https://github.com/yaojingang/yao-open-prompts) ⭐2.4k |
-| **zz-toolbox** | 中造工具箱 —— 多项目整合的 Electron 桌面工具集合（打印工具 + 组件库 + 演练场） | *(本地项目)* |
+## 项目列表
 
----
+| 目录 | 类型 | 简介 |
+|---|---|---|
+| `agency-agents` | 外部项目 | AI 代理人格库，用 Markdown 定义工程、设计、营销等专业代理。 |
+| `awesome-ai-apps` | 外部项目 | AI 应用示例集合，覆盖 Agents、RAG、MCP、微调、语音等方向。 |
+| `BuildingAI` | 外部项目 | AI 智能体应用平台，包含 Agent 构建、知识库 RAG、MCP 工具调用和模型聚合。 |
+| `career-ops` | 外部项目 | AI 驱动的求职/Offer 管理系统，支持职位评估、简历生成和流程管理。 |
+| `Hands-On-Large-Language-Models` | 外部项目 | 《Hands-On Large Language Models》配套实战代码和 Jupyter 笔记本。 |
+| `hello-agents` | 外部项目 | 中文智能体教程，覆盖 Agent 概念、范式、原理和实战。 |
+| `Horizon` | 外部项目 | AI 新闻雷达，多源聚合、评分筛选并生成中英双语简报。 |
+| `html-ppt-skill` | 外部项目 | HTML 演示文稿生成技能，包含主题、模板和动画效果。 |
+| `html-video` | 外部项目 | 将 HTML 渲染为 MP4 视频的元层框架，面向 AI 编程 Agent 和可视化视频生成。 |
+| `huobao-drama` | 外部项目 | AI 短剧自动化生产平台，包含脚本、分镜、文生图、TTS 和 FFmpeg 合成管线。 |
+| `IDM-VTON` | 外部项目 | 基于扩散模型的虚拟试穿系统，支持 Gradio Web Demo。 |
+| `JoyAI-Echo` | 外部项目 | 多镜头音视频生成框架，关注故事级一致性和对话式编辑。 |
+| `local-deep-research` | 外部项目 | 本地化深度研究助手，支持多 LLM、多检索引擎和隐私优先部署。 |
+| `mmdetection3d` | 外部项目 | OpenMMLab 3D 目标检测工具箱，覆盖室内外 3D 感知场景。 |
+| `MoneyPrinterTurbo` | 外部项目 | AI 短视频生成工具，自动完成脚本、配音、字幕、素材和合成流程。 |
+| `OpenBB` | 外部项目 | 开源金融数据平台和研究工具，提供金融数据访问、分析和扩展能力。 |
+| `OpenMAIC` | 外部项目 | 多代理互动课堂平台，可生成课程大纲、幻灯片、测验和互动模拟。 |
+| `RuView` | 外部项目 | 基于 WiFi CSI 信号的空间智能平台，探索无摄像头人体感知能力。 |
+| `yao-open-prompts` | 外部项目 | 中文 AI 提示词开源库，按场景整理提示词模板。 |
+| `project-helper` | 本地项目 | 项目学习助手，包含 Vue 3 前端、Python 后端和 Electron 桌面封装。 |
+| `VisionFX` | 本地项目 | 浏览器端视觉交互实验项目，包含 MediaPipe 视觉模型、WASM 资源和本地服务脚本。 |
+| `zz-toolbox` | 本地项目 | 中造工具箱，多项目整合的 Electron/Vue 工具集合。 |
 
-## 📁 其他目录
+## 资料目录
 
 | 目录 | 说明 |
-|------|------|
-| **AI技能整理/** | AI 技能资料整理（无 git） |
+|---|---|
+| `AI技能整理` | AI 技能、页面生成、垂直领域 AI 应用等学习资料。 |
 
----
+## 使用建议
 
-> 🔧 **维护规则：** 每次新增或删除项目目录时，必须同步更新此 README 文档中的项目列表、统计数量和更新日期。
+1. 进入具体子项目目录后，优先阅读该目录自己的 `README.md`。
+2. 外部项目多以 gitlink 形式记录，更新时需要在对应子目录中处理版本，再回到根目录提交 gitlink 变更。
+3. 本地项目可直接在本仓库内维护，但应保留各自独立的依赖文件、运行说明和 `.env.example`。
+4. 大模型权重、数据集、渲染产物、缓存、密钥和本地数据库不提交到根仓库。
+
+## 维护规则
+
+- 新增或删除根目录项目时，更新“最后更新”日期、项目数量和项目列表。
+- 新项目如果来自开源仓库，优先记录为外部项目；如果是本地实验或二次开发，标记为本地项目。
+- 根 `.gitignore` 只维护通用规则；子项目专属规则放在子项目自己的 `.gitignore` 中。
+- 不要提交 `.env`、模型权重、临时输出、IDE 缓存、依赖安装目录和大型数据文件。
