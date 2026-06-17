@@ -31,9 +31,13 @@ powershell -ExecutionPolicy Bypass -File setup.ps1
 .
 ├─ index.html
 ├─ styles.css
-├─ app.js
+├─ core.js                  # 主入口：路由 + 摄像头 + MediaPipe + 面部特效
+├─ gesture-filter.js        # 手势滤波：EMA + 迟滞 + 多帧确认 + 丢帧保持
+├─ curtain-physics.js       # 幕布物理：Verlet cloth + 对角/弯曲约束 + 阻尼 + 速度限制
+├─ curtain-render.js        # 幕布渲染：边缘羽化 + 阴影 + 运动模糊
 ├─ server.py
 ├─ setup.ps1
+├─ README.md
 ├─ assets/
 │  ├─ p5.min.js
 │  └─ lootai/

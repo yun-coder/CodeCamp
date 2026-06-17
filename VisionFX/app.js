@@ -30,6 +30,28 @@ const REMOTE_MODEL_PATHS = {
 
 const CURTAIN_DEFAULT_POSTER = "assets/lootai/curtain-cover.jpg";
 const CURTAIN_DEFAULT_VIDEO = "assets/lootai/curtain-showcase.mp4";
+const CURTAIN_PINCH_START = 0.06;
+const CURTAIN_PINCH_END = 0.086;
+const CURTAIN_MISS_HOLD_FRAMES = 6;
+const CURTAIN_SOFT_GRAB_RADIUS = 92;
+const CURTAIN_MAX_GRAB_STEP = 46;
+
+function createCurtainGestureFilter() {
+  return {
+    present: false,
+    pinching: false,
+    x: 0,
+    y: 0,
+    rawX: 0,
+    rawY: 0,
+    vx: 0,
+    vy: 0,
+    lastT: 0,
+    missed: 0,
+    confidence: 0,
+    distance: 1,
+  };
+}
 
 const state = {
   active: solutions[0],
@@ -37,6 +59,7 @@ const state = {
   vision: null,
   task: null,
   raf: 0,
+  lastVideoTime: -1,
   faceParticles: [],
   curtain: {
     p5: null,
@@ -47,6 +70,7 @@ const state = {
     defaultMedia: null,
     pointer: { active: false, node: null, x: 0, y: 0 },
     hand: { node: null },
+    gesture: createCurtainGestureFilter(),
     particles: [],
     lastSize: "",
   },
@@ -195,6 +219,8 @@ function stopCamera() {
   if (state.stream) state.stream.getTracks().forEach((track) => track.stop());
   state.stream = null;
   state.task = null;
+  state.lastVideoTime = -1;
+  state.curtain.gesture = createCurtainGestureFilter();
   els.video.srcObject = null;
   els.video.classList.remove("active");
   els.status.textContent = "摄像头已停止";
@@ -227,6 +253,7 @@ async function loadVision() {
 async function startTaskForActive() {
   if (!state.stream) return;
   stopLoop();
+  state.lastVideoTime = -1;
   try {
     const vision = await loadVision();
     state.task = await createTask(vision, state.active.model);
@@ -283,12 +310,15 @@ function loopVision() {
   if (!state.task || !state.stream) return;
   const now = performance.now();
   try {
-    if (state.active.model === "gesture") {
-      const result = state.task.recognizeForVideo(els.video, now);
-      state.curtain.latestResult = result;
-    } else {
-      const result = state.task.detectForVideo(els.video, now);
-      drawFaceResult(result);
+    if (els.video.currentTime !== state.lastVideoTime) {
+      state.lastVideoTime = els.video.currentTime;
+      if (state.active.model === "gesture") {
+        const result = state.task.recognizeForVideo(els.video, now);
+        state.curtain.latestResult = result;
+      } else {
+        const result = state.task.detectForVideo(els.video, now);
+        drawFaceResult(result);
+      }
     }
   } catch (error) {
     console.warn(error);
@@ -326,7 +356,7 @@ function startCurtainSketch() {
       const canvas = p.createCanvas(Math.max(1, rect.width), Math.max(1, rect.height));
       canvas.parent(els.stage);
       canvas.addClass("p5-curtain-canvas");
-      p.pixelDensity(window.devicePixelRatio || 1);
+      p.pixelDensity(Math.min(1.5, window.devicePixelRatio || 1));
       initCurtainCloth(p.width, p.height, true);
     };
     p.draw = () => renderRealityCurtain(p);
@@ -440,7 +470,7 @@ function initCurtainCloth(width, height, force = false) {
     recovering: false,
   };
   curtain.pointer = { active: false, node: null, x: 0, y: 0 };
-  curtain.hand = { node: null };
+  curtain.hand = { node: null, softNodes: [] };
   curtain.particles = [];
   curtain.lastSize = sizeKey;
   return curtain.cloth;
@@ -475,6 +505,7 @@ function renderRealityCurtain(p) {
     ctx.closePath();
     ctx.clip();
     drawRealityBase(ctx, width, height);
+    drawCurtainSurfaceWash(ctx, width, height, handGrab.pinching || cloth.recovering);
     ctx.restore();
     drawCurtainShading(ctx, cloth);
     drawCurtainEdge(ctx, perimeter);
@@ -485,14 +516,14 @@ function renderRealityCurtain(p) {
 
   if (p.frameCount % 12 === 0) {
     renderOutput([
-      { label: handGrab.pinching ? "gesture active" : "waiting gesture", value: handGrab.pinching ? 100 : 0 },
+      { label: handGrab.pinching ? "gesture active" : "waiting gesture", value: handGrab.pinching ? handGrab.confidence || 100 : handGrab.confidence || 0 },
       { label: cloth.revealed ? "revealed" : "curtain", value: cloth.revealed ? 100 : 72 },
     ]);
   }
 }
 
 function drawRealityBase(ctx, width, height) {
-  if (els.video.videoWidth) {
+  if (hasUsableVideoFrame()) {
     ctx.save();
     ctx.translate(width, 0);
     ctx.scale(-1, 1);
@@ -502,11 +533,20 @@ function drawRealityBase(ctx, width, height) {
   }
 
   const grad = ctx.createLinearGradient(0, 0, width, height);
-  grad.addColorStop(0, "#171f25");
-  grad.addColorStop(1, "#2c343a");
+  grad.addColorStop(0, "#1c2a30");
+  grad.addColorStop(0.52, "#23323a");
+  grad.addColorStop(1, "#13261f");
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, width, height);
-  ctx.strokeStyle = "rgba(255,255,255,0.06)";
+
+  const wash = ctx.createLinearGradient(0, height * 0.25, width, height * 0.8);
+  wash.addColorStop(0, "rgba(16,184,166,0.16)");
+  wash.addColorStop(0.5, "rgba(214,167,42,0.08)");
+  wash.addColorStop(1, "rgba(73,163,255,0.12)");
+  ctx.fillStyle = wash;
+  ctx.fillRect(0, 0, width, height);
+
+  ctx.strokeStyle = "rgba(255,255,255,0.08)";
   ctx.lineWidth = 1;
   for (let x = 0; x < width; x += 42) {
     ctx.beginPath();
@@ -525,6 +565,26 @@ function drawRealityBase(ctx, width, height) {
   ctx.textAlign = "center";
   ctx.fillText("启动摄像头后，这里会成为实时现实层", width / 2, height * 0.55);
   ctx.textAlign = "start";
+}
+
+function hasUsableVideoFrame() {
+  return (
+    els.video.videoWidth > 0 &&
+    els.video.videoHeight > 0 &&
+    els.video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA
+  );
+}
+
+function drawCurtainSurfaceWash(ctx, width, height, active) {
+  ctx.save();
+  ctx.globalCompositeOperation = "screen";
+  const surface = ctx.createLinearGradient(0, 0, width, height);
+  surface.addColorStop(0, active ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.1)");
+  surface.addColorStop(0.45, "rgba(16,184,166,0.06)");
+  surface.addColorStop(1, "rgba(214,167,42,0.08)");
+  ctx.fillStyle = surface;
+  ctx.fillRect(0, 0, width, height);
+  ctx.restore();
 }
 
 function drawHiddenLayer(ctx, width, height, media) {
@@ -579,17 +639,81 @@ function drawCoverElement(ctx, el, sourceW, sourceH, x, y, w, h) {
 }
 
 function getCurtainHandGrab(result, width, height) {
+  const filter = state.curtain.gesture;
   const landmarks = result.landmarks?.[0];
-  if (!landmarks) return { pinching: false, x: 0, y: 0 };
+  if (!landmarks) return updateCurtainGestureFilter(null, width, height);
   const thumb = landmarks[4];
   const index = landmarks[8];
-  if (!thumb || !index) return { pinching: false, x: 0, y: 0 };
+  if (!thumb || !index) return updateCurtainGestureFilter(null, width, height);
   const distance = Math.hypot(index.x - thumb.x, index.y - thumb.y);
-  return {
+  const wasPinching = filter.pinching;
+  const pinching = wasPinching
+    ? distance < CURTAIN_PINCH_END
+    : distance < CURTAIN_PINCH_START;
+  return updateCurtainGestureFilter({
     present: true,
-    pinching: distance < 0.065,
+    pinching,
     x: width - ((thumb.x + index.x) * 0.5 * width),
     y: (thumb.y + index.y) * 0.5 * height,
+    distance,
+  }, width, height);
+}
+
+function updateCurtainGestureFilter(sample, width, height) {
+  const filter = state.curtain.gesture;
+  const now = performance.now();
+  const dt = filter.lastT ? Math.min(0.08, Math.max(0.001, (now - filter.lastT) / 1000)) : 1 / 60;
+  filter.lastT = now;
+
+  if (!sample?.present) {
+    filter.missed += 1;
+    filter.confidence = Math.max(0, filter.confidence - 0.16);
+    filter.present = filter.missed <= CURTAIN_MISS_HOLD_FRAMES && filter.confidence > 0.15;
+    if (!filter.present) filter.pinching = false;
+    return {
+      present: filter.present,
+      pinching: filter.pinching,
+      x: filter.x,
+      y: filter.y,
+      confidence: Math.round(filter.confidence * 100),
+      distance: filter.distance,
+    };
+  }
+
+  filter.missed = 0;
+  filter.present = true;
+  filter.pinching = sample.pinching;
+  filter.rawX = sample.x;
+  filter.rawY = sample.y;
+  filter.distance = sample.distance;
+  filter.confidence = Math.min(1, filter.confidence + 0.22);
+
+  const initialized = filter.x || filter.y;
+  if (!initialized) {
+    filter.x = sample.x;
+    filter.y = sample.y;
+  }
+
+  const speed = Math.hypot(sample.x - filter.x, sample.y - filter.y) / Math.max(dt, 0.001);
+  const alpha = Math.min(0.58, Math.max(0.16, 0.22 + speed / Math.max(width, height) * 0.22));
+  const nextX = filter.x + (sample.x - filter.x) * alpha;
+  const nextY = filter.y + (sample.y - filter.y) * alpha;
+  filter.vx = (nextX - filter.x) / dt;
+  filter.vy = (nextY - filter.y) / dt;
+  filter.x = nextX;
+  filter.y = nextY;
+
+  return {
+    present: true,
+    pinching: filter.pinching,
+    x: filter.x,
+    y: filter.y,
+    rawX: filter.rawX,
+    rawY: filter.rawY,
+    vx: filter.vx,
+    vy: filter.vy,
+    confidence: Math.round(filter.confidence * 100),
+    distance: filter.distance,
   };
 }
 
@@ -612,21 +736,29 @@ function updateCurtainPhysics(cloth, handGrab, width, height) {
       : findNearestCurtainNode(cloth, pointer.x, pointer.y, grabRadius);
   }
   if (!pointerEnabled || !pointer.active) pointer.node = null;
-  if (handGrab.pinching && !hand.node) {
-    hand.node = cloth.recovering
-      ? findNearestCurtainNode(cloth, handGrab.x, handGrab.y, Math.max(grabRadius, cloth.width))
-      : findNearestCurtainNode(cloth, handGrab.x, handGrab.y, grabRadius);
+  if (handGrab.pinching && !hand.softNodes?.length) {
+    const softRadius = cloth.recovering
+      ? Math.max(grabRadius, cloth.width)
+      : Math.max(CURTAIN_SOFT_GRAB_RADIUS, grabRadius * 0.72);
+    hand.softNodes = findCurtainSoftGrabNodes(cloth, handGrab.x, handGrab.y, softRadius);
+    hand.node = hand.softNodes[0]?.node || null;
   }
-  if (!handGrab.pinching) hand.node = null;
+  if (!handGrab.pinching) {
+    hand.node = null;
+    hand.softNodes = [];
+  }
 
   const grabbed = new Set();
   if (pointer.node) {
     pinCurtainNode(pointer.node, pointer.x, pointer.y);
     grabbed.add(pointer.node);
   }
-  if (hand.node && !grabbed.has(hand.node)) {
-    pinCurtainNode(hand.node, handGrab.x, handGrab.y);
-    grabbed.add(hand.node);
+  if (hand.softNodes?.length) {
+    for (const grab of hand.softNodes) {
+      if (grabbed.has(grab.node)) continue;
+      softPullCurtainNode(grab, handGrab.x, handGrab.y);
+      grabbed.add(grab.node);
+    }
   }
 
   for (const node of grabbed) {
@@ -701,6 +833,7 @@ function beginCurtainRecovery(cloth, x, y, height) {
   }
   state.curtain.pointer.node = null;
   state.curtain.hand.node = null;
+  state.curtain.hand.softNodes = [];
 
   const firstNode = findNearestCurtainNode(cloth, x, y, Math.max(cloth.width, cloth.height));
   if (firstNode) pinCurtainNode(firstNode, x, y);
@@ -745,11 +878,54 @@ function findNearestCurtainNode(cloth, x, y, radius) {
   return nearest;
 }
 
+function findCurtainSoftGrabNodes(cloth, x, y, radius) {
+  const grabs = [];
+  const radiusSq = radius * radius;
+  for (const point of cloth.points) {
+    if (point.pinned) continue;
+    const dx = point.x - x;
+    const dy = point.y - y;
+    const d = dx * dx + dy * dy;
+    if (d > radiusSq) continue;
+    const normalized = Math.sqrt(d) / radius;
+    const weight = Math.max(0.12, (1 - normalized) ** 1.75);
+    grabs.push({
+      node: point,
+      offsetX: dx,
+      offsetY: dy,
+      weight,
+      d,
+    });
+  }
+  grabs.sort((a, b) => a.d - b.d);
+  return grabs.slice(0, 24);
+}
+
 function pinCurtainNode(node, x, y) {
   node.oldX = node.x;
   node.oldY = node.y;
   node.x = x;
   node.y = y;
+}
+
+function softPullCurtainNode(grab, x, y) {
+  const node = grab.node;
+  const targetX = x + grab.offsetX * 0.62;
+  const targetY = y + grab.offsetY * 0.62;
+  const strength = 0.32 + grab.weight * 0.46;
+  let dx = (targetX - node.x) * strength;
+  let dy = (targetY - node.y) * strength;
+  const step = Math.hypot(dx, dy);
+  const maxStep = CURTAIN_MAX_GRAB_STEP * (0.45 + grab.weight);
+  if (step > maxStep) {
+    const scale = maxStep / step;
+    dx *= scale;
+    dy *= scale;
+  }
+  node.oldX = node.x - dx * 0.18;
+  node.oldY = node.y - dy * 0.18;
+  node.x += dx;
+  node.y += dy;
 }
 
 function getCurtainPerimeter(cloth) {

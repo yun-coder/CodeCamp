@@ -64,6 +64,11 @@ $downloads = @(
     Name = "Face Landmarker model"
   },
   @{
+    Url = "$modelBase/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task"
+    Dest = Join-Path $modelDir "hand_landmarker.task"
+    Name = "Hand Landmarker model"
+  },
+  @{
     Url = $p5Url
     Dest = Join-Path $assetDir "p5.min.js"
     Name = "p5.js"
