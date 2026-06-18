@@ -2,9 +2,9 @@
 
 个人 AI 学习项目集合。这个仓库用于集中索引、保存和实验多个 AI、Agent、RAG、视频生成、金融数据、工具平台类项目，方便横向学习、对比技术栈和沉淀本地实践。
 
-> 最后更新：2026-06-12  
-> 当前目录：23 个非隐藏目录，其中 22 个项目目录 + 1 个资料目录  
-> 项目口径：19 个外部 gitlink 项目 + 3 个本地项目
+> 最后更新：2026-06-18  
+> 当前目录：21 个非隐藏目录，其中 17 个项目目录 + 1 个资料目录  
+> 项目口径：15 个外部 gitlink 项目 + 2 个本地项目
 
 ## 项目识别
 
@@ -19,25 +19,20 @@
 |---|---|---|
 | `agency-agents` | 外部项目 | AI 代理人格库，用 Markdown 定义工程、设计、营销等专业代理。 |
 | `awesome-ai-apps` | 外部项目 | AI 应用示例集合，覆盖 Agents、RAG、MCP、微调、语音等方向。 |
-| `BuildingAI` | 外部项目 | AI 智能体应用平台，包含 Agent 构建、知识库 RAG、MCP 工具调用和模型聚合。 |
 | `career-ops` | 外部项目 | AI 驱动的求职/Offer 管理系统，支持职位评估、简历生成和流程管理。 |
 | `Hands-On-Large-Language-Models` | 外部项目 | 《Hands-On Large Language Models》配套实战代码和 Jupyter 笔记本。 |
 | `hello-agents` | 外部项目 | 中文智能体教程，覆盖 Agent 概念、范式、原理和实战。 |
-| `Horizon` | 外部项目 | AI 新闻雷达，多源聚合、评分筛选并生成中英双语简报。 |
 | `html-ppt-skill` | 外部项目 | HTML 演示文稿生成技能，包含主题、模板和动画效果。 |
-| `html-video` | 外部项目 | 将 HTML 渲染为 MP4 视频的元层框架，面向 AI 编程 Agent 和可视化视频生成。 |
-| `huobao-drama` | 外部项目 | AI 短剧自动化生产平台，包含脚本、分镜、文生图、TTS 和 FFmpeg 合成管线。 |
-| `IDM-VTON` | 外部项目 | 基于扩散模型的虚拟试穿系统，支持 Gradio Web Demo。 |
-| `JoyAI-Echo` | 外部项目 | 多镜头音视频生成框架，关注故事级一致性和对话式编辑。 |
 | `local-deep-research` | 外部项目 | 本地化深度研究助手，支持多 LLM、多检索引擎和隐私优先部署。 |
 | `mmdetection3d` | 外部项目 | OpenMMLab 3D 目标检测工具箱，覆盖室内外 3D 感知场景。 |
 | `MoneyPrinterTurbo` | 外部项目 | AI 短视频生成工具，自动完成脚本、配音、字幕、素材和合成流程。 |
 | `OpenBB` | 外部项目 | 开源金融数据平台和研究工具，提供金融数据访问、分析和扩展能力。 |
 | `OpenMAIC` | 外部项目 | 多代理互动课堂平台，可生成课程大纲、幻灯片、测验和互动模拟。 |
 | `RuView` | 外部项目 | 基于 WiFi CSI 信号的空间智能平台，探索无摄像头人体感知能力。 |
+| `Python-100-Days` | 外部项目 | Python 全栈学习教程，涵盖 Web 开发、数据分析、人工智能等方向。 |
 | `yao-open-prompts` | 外部项目 | 中文 AI 提示词开源库，按场景整理提示词模板。 |
 | `project-helper` | 本地项目 | 项目学习助手，包含 Vue 3 前端、Python 后端和 Electron 桌面封装。 |
-| `VisionFX` | 本地项目 | 浏览器端视觉交互实验项目，包含 MediaPipe 视觉模型、WASM 资源和本地服务脚本。 |
+| `super-space` | 外部项目 | 团队协作与知识管理空间，支持多维度的项目管理与文档协作。 |
 | `zz-toolbox` | 本地项目 | 中造工具箱，多项目整合的 Electron/Vue 工具集合。 |
 
 ## 资料目录
