@@ -1,0 +1,13 @@
+# IntentOS 后端依赖
+# 锁定到 2026-06 验证过的版本
+
+# Web 框架
+fastapi>=0.115
+uvicorn[standard]>=0.30
+sse-starlette>=2.1
+pydantic>=2.5
+pydantic-settings>=2.1
+
+# AutoGen 0.4 框架
+autogen-agentchat>=0.4
+autogen-ext[openai]>=0.4
