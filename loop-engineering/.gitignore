@@ -1,24 +1,13 @@
-# dependencies
-node_modules/
-__pycache__/
-*.pyc
-.venv/
-.env
-
-# logs
-*.log
-
-# OS
-.DS_Store
-Thumbs.db
-
-# editors
-.idea/
-.vscode/
-
-# Claude Code
-.claude/settings.local.json
-
-# §04 零件二 · worktree 是临时隔离区,不进 git
-# (git worktree 自己会管理,不需要 git 再管)
 .worktrees/
+logs/
+*.pyc
+__pycache__/
+dev.json
+.env
+.venv/
+state/memory.md
+!state/memory.md.example
+inbox/
+
+# 临时/废弃目录
+connectors/_deprecated/
