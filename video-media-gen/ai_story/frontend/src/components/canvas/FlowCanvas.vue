@@ -1,0 +1,473 @@
+<template>
+  <div
+    ref="wrapper"
+    class="flow-canvas-wrapper"
+  >
+    <!-- 画布控制工具栏 -->
+    <div class="canvas-controls">
+      <div class="btn-group">
+        <button
+          class="btn btn-sm btn-ghost"
+          title="放大"
+          @click="zoomIn"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"
+            />
+          </svg>
+        </button>
+        <button
+          class="btn btn-sm btn-ghost"
+          title="缩小"
+          @click="zoomOut"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM7 10h6"
+            />
+          </svg>
+        </button>
+        <button
+          class="btn btn-sm btn-ghost"
+          title="适应画布"
+          @click="resetView"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+            />
+          </svg>
+        </button>
+      </div>
+      <div class="text-xs text-base-content/60 ml-2">
+        {{ Math.round(scale * 100) }}%
+      </div>
+    </div>
+
+    <!-- 画布容器 -->
+    <div
+      class="canvas-container"
+      @mousedown="handleMouseDown"
+      @mousemove="handleMouseMove"
+      @mouseup="handleMouseUp"
+      @mouseleave="handleMouseUp"
+      @wheel="handleWheel"
+      @dblclick="handleCanvasDoubleClick"
+    >
+      <!-- 可变换的画布内容 -->
+      <div
+        class="canvas-content"
+        :style="canvasStyle"
+      >
+        <!-- 节点内容插槽 -->
+        <slot :scale="scale" />
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'FlowCanvas',
+  props: {
+    nodes: {
+      type: Object,
+      default: () => ({})
+    }
+  },
+  data() {
+    return {
+      scale: 1,
+      translateX: 0,
+      translateY: 0,
+      isDragging: false,
+      dragStartX: 0,
+      dragStartY: 0,
+      startTranslateX: 0,
+      startTranslateY: 0,
+      minScale: 0.3,
+      maxScale: 2,
+      lastFitSignature: null,
+      isAnimatingView: false,
+      viewAnimationDuration: 320,
+      viewAnimationTimer: null,
+    };
+  },
+  computed: {
+    canvasStyle() {
+      return {
+        transform: `translate(${this.translateX}px, ${this.translateY}px) scale(${this.scale})`,
+        transformOrigin: '0 0',
+        transition: this.isAnimatingView ? `transform ${this.viewAnimationDuration}ms cubic-bezier(0.22, 1, 0.36, 1)` : 'none',
+      };
+    }
+  },
+  watch: {
+    // 监听节点变化，自动适配
+    nodes: {
+      deep: true,
+      handler() {
+        const nextSignature = this.getLayoutSignature();
+        if (nextSignature === this.lastFitSignature) {
+          return;
+        }
+        this.lastFitSignature = nextSignature;
+        this.$nextTick(() => {
+          this.fitAllNodes();
+        });
+      }
+    }
+  },
+  mounted() {
+    // 初始化视图：自动适配所有节点
+    this.$nextTick(() => {
+      this.fitAllNodes();
+      this.lastFitSignature = this.getLayoutSignature();
+    });
+  },
+  beforeDestroy() {
+    this.clearViewAnimationTimer();
+  },
+  methods: {
+    clearViewAnimationTimer() {
+      if (this.viewAnimationTimer) {
+        clearTimeout(this.viewAnimationTimer);
+        this.viewAnimationTimer = null;
+      }
+    },
+    stopViewAnimation() {
+      this.clearViewAnimationTimer();
+      this.isAnimatingView = false;
+    },
+    applyViewState({ scale, translateX, translateY }, { animate = false } = {}) {
+      if (animate) {
+        this.clearViewAnimationTimer();
+        this.isAnimatingView = true;
+      } else {
+        this.stopViewAnimation();
+      }
+
+      this.scale = scale;
+      this.translateX = translateX;
+      this.translateY = translateY;
+
+      if (animate) {
+        this.viewAnimationTimer = setTimeout(() => {
+          this.isAnimatingView = false;
+          this.viewAnimationTimer = null;
+        }, this.viewAnimationDuration);
+      }
+    },
+    // 缩放控制
+    zoomIn() {
+      this.setScale(this.scale * 1.2);
+    },
+    zoomOut() {
+      this.setScale(this.scale / 1.2);
+    },
+    setScale(newScale) {
+      this.stopViewAnimation();
+      this.scale = Math.max(this.minScale, Math.min(this.maxScale, newScale));
+    },
+    resetView() {
+      this.fitAllNodes();
+    },
+
+    focusNode(nodeKey, options = {}) {
+      const wrapper = this.$refs.wrapper;
+      const node = this.nodes?.[nodeKey];
+
+      if (!wrapper || !node) {
+        return;
+      }
+
+      const container = wrapper.querySelector('.canvas-container');
+      if (!container) {
+        return;
+      }
+
+      const containerWidth = container.clientWidth;
+      const containerHeight = container.clientHeight;
+      const topOffset = Number(options.topOffset || 0);
+      const bottomOffset = Number(options.bottomOffset || 0);
+      const leftOffset = Number(options.leftOffset || 0);
+      const rightOffset = Number(options.rightOffset || 0);
+      const visibleWidth = containerWidth - leftOffset - rightOffset;
+      const visibleHeight = containerHeight - topOffset - bottomOffset;
+
+      if (containerWidth === 0 || containerHeight === 0 || visibleWidth <= 0 || visibleHeight <= 0) {
+        return;
+      }
+
+      const nodeWidth = node.width || 240;
+      const nodeHeight = node.height || 160;
+      const focusPaddingX = visibleWidth * 0.3;
+      const focusPaddingY = visibleHeight * 0.28;
+      const focusScaleX = (visibleWidth - focusPaddingX * 2) / nodeWidth;
+      const focusScaleY = (visibleHeight - focusPaddingY * 2) / nodeHeight;
+      const targetScale = Math.max(
+        this.scale,
+        Math.max(1, Math.min(focusScaleX, focusScaleY))
+      );
+
+      this.scale = Math.max(this.minScale, Math.min(this.maxScale, targetScale));
+
+      const nextScale = Math.max(this.minScale, Math.min(this.maxScale, targetScale));
+      const viewportCenterX = leftOffset + (visibleWidth / 2);
+      const viewportCenterY = topOffset + (visibleHeight / 2);
+      const nextTranslateX = viewportCenterX - ((node.x + nodeWidth / 2) * nextScale);
+      const nextTranslateY = viewportCenterY - ((node.y + nodeHeight / 2) * nextScale);
+
+      this.applyViewState({
+        scale: nextScale,
+        translateX: nextTranslateX,
+        translateY: nextTranslateY,
+      }, { animate: true });
+    },
+
+    // 自动适配所有节点
+    fitAllNodes() {
+      const wrapper = this.$refs.wrapper;
+      if (!wrapper || Object.keys(this.nodes).length === 0) {
+        // 如果没有节点，使用默认居中
+        this.centerView();
+        return;
+      }
+
+      const container = wrapper.querySelector('.canvas-container');
+      if (!container) {
+        this.centerView();
+        return;
+      }
+
+      // 计算所有节点的边界
+      let minX = Infinity;
+      let minY = Infinity;
+      let maxX = -Infinity;
+      let maxY = -Infinity;
+
+      Object.values(this.nodes).forEach(node => {
+        minX = Math.min(minX, node.x);
+        minY = Math.min(minY, node.y);
+        maxX = Math.max(maxX, node.x + (node.width || 200));
+        maxY = Math.max(maxY, node.y + (node.height || 100));
+      });
+
+      // 计算内容的宽高
+      const contentWidth = maxX - minX;
+      const contentHeight = maxY - minY;
+
+      // 计算容器的宽高
+      const containerWidth = container.clientWidth;
+      const containerHeight = container.clientHeight;
+
+      if (containerWidth === 0 || containerHeight === 0) {
+        this.centerView();
+        return;
+      }
+
+      // 计算合适的缩放比例（留出边距）
+      const padding = 50; // 边距
+      const scaleX = (containerWidth - padding * 2) / contentWidth;
+      const scaleY = (containerHeight - padding * 2) / contentHeight;
+      const targetScale = Math.min(scaleX, scaleY, 1); // 不超过1倍
+
+      const nextScale = Math.max(this.minScale, Math.min(this.maxScale, targetScale));
+
+      // 计算平移，使内容居中
+      const scaledContentWidth = contentWidth * nextScale;
+      const scaledContentHeight = contentHeight * nextScale;
+
+      this.applyViewState({
+        scale: nextScale,
+        translateX: (containerWidth - scaledContentWidth) / 2 - minX * nextScale,
+        translateY: (containerHeight - scaledContentHeight) / 2 - minY * nextScale,
+      }, { animate: true });
+    },
+
+    centerView() {
+      // 将画布内容居中显示（默认行为）
+      const wrapper = this.$refs.wrapper;
+      if (wrapper) {
+        const container = wrapper.querySelector('.canvas-container') || wrapper;
+        this.applyViewState({
+          translateX: container.clientWidth / 2 - 200,
+          translateY: 100,
+          scale: 1,
+        }, { animate: true });
+      }
+    },
+
+    getLayoutSignature() {
+      const keys = Object.keys(this.nodes || {}).sort();
+      if (keys.length === 0) {
+        return 'empty';
+      }
+      return keys.map((key) => {
+        const node = this.nodes[key] || {};
+        const x = Number(node.x) || 0;
+        const y = Number(node.y) || 0;
+        const w = Number(node.width) || 0;
+        const h = Number(node.height) || 0;
+        return `${key}:${x},${y},${w},${h}`;
+      }).join('|');
+    },
+
+    // 鼠标拖动
+    handleMouseDown(e) {
+      this.stopViewAnimation();
+      // 只有在空白区域点击才开始拖动
+      if (e.target.classList.contains('canvas-container') ||
+          e.target.classList.contains('canvas-content')) {
+        this.isDragging = true;
+        this.dragStartX = e.clientX;
+        this.dragStartY = e.clientY;
+        this.startTranslateX = this.translateX;
+        this.startTranslateY = this.translateY;
+        e.preventDefault();
+      }
+    },
+    handleMouseMove(e) {
+      if (this.isDragging) {
+        const dx = e.clientX - this.dragStartX;
+        const dy = e.clientY - this.dragStartY;
+        this.translateX = this.startTranslateX + dx;
+        this.translateY = this.startTranslateY + dy;
+      }
+    },
+    handleMouseUp() {
+      this.isDragging = false;
+    },
+
+    shouldIgnoreWheel(target) {
+      if (!(target instanceof Element)) {
+        return false;
+      }
+
+      return Boolean(
+        target.closest('input, textarea, select, option, [contenteditable="true"], .prevent-canvas-wheel')
+      );
+    },
+
+    // 鼠标滚轮缩放
+    handleWheel(e) {
+      this.stopViewAnimation();
+      if (this.shouldIgnoreWheel(e.target)) {
+        return;
+      }
+
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? 0.98 : 1.02;
+      this.setScale(this.scale * delta);
+    },
+
+    handleCanvasDoubleClick(event) {
+      const target = event.target;
+      if (!(target instanceof Element)) {
+        return;
+      }
+
+      if (target.classList.contains("canvas-container") || target.classList.contains("canvas-content")) {
+        this.resetView();
+      }
+    }
+  }
+};
+</script>
+
+<style scoped>
+.flow-canvas-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  min-height: 600px;
+  display: flex;
+  flex-direction: column;
+  background: hsl(var(--b2));
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.canvas-controls {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: hsl(var(--b1));
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.canvas-container {
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  min-height: 0;
+  cursor: grab;
+  position: relative;
+  overflow: hidden;
+  /* 网格线背景 */
+  background-color: #f5f5f5;
+  background-image:
+    linear-gradient(#e0e0e0 1px, transparent 1px),
+    linear-gradient(90deg, #e0e0e0 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.layout-shell.theme-dark .canvas-controls {
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: 0 4px 12px rgba(2, 6, 23, 0.6);
+}
+
+.layout-shell.theme-dark .canvas-container {
+  background-color: #0b1120;
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.16) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.16) 1px, transparent 1px);
+}
+
+.canvas-container:active {
+  cursor: grabbing;
+}
+
+.canvas-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.1s ease-out;
+}
+
+</style>

@@ -1,0 +1,80 @@
+{
+  "name": "@file-viewer/pptx",
+  "version": "2.1.13",
+  "private": false,
+  "type": "module",
+  "description": "Native PPTX renderer extracted from Flyfish File Viewer",
+  "keywords": [
+    "pptx",
+    "powerpoint",
+    "presentation",
+    "file-viewer",
+    "document-preview",
+    "document-viewer",
+    "file-preview",
+    "self-hosted"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "author": {
+    "name": "Wangyu",
+    "email": "wybaby168@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/flyfish-dev/pptxjs.git",
+    "directory": "packages/renderers/pptx"
+  },
+  "homepage": "https://doc.file-viewer.app/",
+  "bugs": {
+    "url": "https://github.com/flyfish-dev/pptxjs/issues"
+  },
+  "funding": {
+    "type": "individual",
+    "url": "https://dev.flyfish.group/shop"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./worker": {
+      "types": "./dist/worker.d.ts",
+      "import": "./dist/worker.js",
+      "default": "./dist/worker.js"
+    },
+    "./styles.css": "./dist/styles/pptxjs.css",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "README.en.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node scripts/clean-dist.mjs && tsc -b tsconfig.json --force && node scripts/build-worker.mjs && node scripts/copy-assets.mjs && node scripts/fix-esm-extensions.mjs",
+    "type-check": "tsc -b tsconfig.json"
+  },
+  "dependencies": {
+    "billboard.js": "^3.17.2",
+    "d3-format": "^3.1.2",
+    "dingbat-to-unicode": "^1.0.1",
+    "jszip": "^3.10.1",
+    "tinycolor2": "^1.6.0",
+    "utif": "^3.1.0"
+  },
+  "devDependencies": {
+    "@types/d3-format": "^3.0.4",
+    "@types/node": "^25.9.2",
+    "esbuild": "^0.27.2",
+    "typescript": "^6.0.3"
+  },
+  "license": "Apache-2.0"
+}

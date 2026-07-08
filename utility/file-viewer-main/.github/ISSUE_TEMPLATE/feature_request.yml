@@ -1,0 +1,37 @@
+name: Feature request
+description: Suggest a file type, renderer capability, integration, or deployment improvement.
+title: "[feature]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use case
+      description: Which product scenario needs this?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: Describe the desired behavior, API, renderer, or documentation change.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: What do you use today, and why is it not enough?
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Office / PDF
+        - CAD / engineering
+        - Archive / email
+        - Framework integration
+        - Worker / WASM / private deployment
+        - Documentation / Demo
+        - Other

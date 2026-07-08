@@ -1,0 +1,34 @@
+{
+  "name": "@flyfish-group/file-viewer-open-source",
+  "version": "2.1.13",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.0.9",
+  "description": "Flyfish File Viewer open source official site, demo, core, renderer engines, standard component packages, compatibility aliases, and documentation.",
+  "scripts": {
+    "dev": "pnpm --filter @flyfish-group/file-viewer-demo dev",
+    "site:dev": "pnpm --filter @flyfish-group/file-viewer-site dev",
+    "site:build": "pnpm --filter @flyfish-group/file-viewer-site build",
+    "site:preview": "pnpm --filter @flyfish-group/file-viewer-site preview",
+    "build": "pnpm build:components && pnpm build:demo",
+    "build:demo": "pnpm --filter @flyfish-group/file-viewer-demo build",
+    "build:component-demo": "pnpm --filter @flyfish-group/file-viewer-component-demo build",
+    "build:pptx": "pnpm --filter @file-viewer/pptx build",
+    "build:doc": "pnpm --filter @file-viewer/doc build",
+    "build:core": "pnpm --filter @file-viewer/core build",
+    "build:components": "pnpm build:core && pnpm --filter @file-viewer/web build && pnpm --filter @file-viewer/react build && pnpm --filter @file-viewer/react-legacy build && pnpm --filter @file-viewer/vue3 build && pnpm --filter @file-viewer/vue2.7 build && pnpm --filter @file-viewer/vue2.6 build && pnpm --filter @file-viewer/jquery build && pnpm --filter @file-viewer/svelte build",
+    "type-check": "pnpm --filter @flyfish-group/file-viewer-demo type-check && pnpm type-check:core && pnpm type-check:components",
+    "type-check:core": "pnpm --filter @file-viewer/core type-check",
+    "type-check:components": "pnpm --filter @file-viewer/web type-check && pnpm --filter @file-viewer/react type-check && pnpm --filter @file-viewer/react-legacy type-check && pnpm --filter @file-viewer/vue3 type-check && pnpm --filter @file-viewer/vue2.7 type-check && pnpm --filter @file-viewer/vue2.6 type-check && pnpm --filter @file-viewer/jquery type-check && pnpm --filter @file-viewer/svelte type-check",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.2",
+    "prettier": "^3.8.3",
+    "typescript": "^6.0.3",
+    "vitepress": "^1.6.4"
+  },
+  "license": "Apache-2.0"
+}

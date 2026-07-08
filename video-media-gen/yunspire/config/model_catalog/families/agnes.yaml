@@ -1,0 +1,135 @@
+family: agnes
+display_name: "Agnes AI"
+provider: sapiens
+routing_prefixes:
+  - agnes-
+supported_backends:
+  - agnes
+  - dashscope
+default_backend: dashscope
+credential_sources:
+  dashscope:
+    - AGNES_API_KEY
+  agnes:
+    - AGNES_API_KEY
+supported_modalities:
+  - text
+  - t2i
+  - i2i
+  - i2v
+  - r2v
+transport:
+  image_input_mode:
+    dashscope: dashscope_multimodal_message
+    agnes: openai_compatible_image_url
+  audio_input_mode:
+    dashscope: dashscope_temp_file_url
+    agnes: openai_compatible_audio_url
+  reference_video_input_mode:
+    dashscope: dashscope_temp_file_url
+    agnes: openai_compatible_video_url
+docs:
+  official_snapshot_ids: []
+models:
+  - id: agnes-3.7-plus
+    display_name: "Agnes 3.7 Plus"
+    description: "Advanced reasoning and text generation model for script analysis, entity extraction, and creative writing"
+    status: active
+    release_stage: stable
+    capabilities: [text]
+    docs:
+      context_hub_doc_ids: [sapiens/agnes]
+    runtime:
+      dashscope:
+        gateway: dashscope
+        api_model_id: agnes-3.7-plus
+    ui:
+      selection_group: t2i
+      visible_in: [project_settings, series_settings, global_settings]
+      order: 200
+      badges: [new]
+    params:
+      temperature:
+        min: 0.1
+        max: 2.0
+        step: 0.1
+        default: 0.7
+      maxTokens:
+        min: 1
+        max: 128000
+        step: 1
+        default: 4096
+
+  - id: agnes-multimodal-1
+    display_name: "Agnes Multimodal 1"
+    description: "Multimodal understanding and reasoning model for image/video analysis and creative workflows"
+    status: active
+    release_stage: stable
+    capabilities: [text]
+    docs:
+      context_hub_doc_ids: [sapiens/agnes]
+    runtime:
+      dashscope:
+        gateway: dashscope
+        api_model_id: agnes-multimodal-1
+    ui:
+      selection_group: t2i
+      visible_in: [project_settings, series_settings, global_settings]
+      order: 190
+    params:
+      temperature:
+        min: 0.1
+        max: 2.0
+        step: 0.1
+        default: 0.7
+
+  - id: agnes-image-2.1-flash
+    display_name: "Agnes Image 2.1 Flash"
+    description: "Fast and high-quality text-to-image and image-to-image generation with precise style control"
+    status: active
+    release_stage: stable
+    capabilities: [t2i, i2i]
+    docs:
+      context_hub_doc_ids: [sapiens/agnes]
+    runtime:
+      agnes:
+        gateway: agnes
+        api_model_id: agnes-image-2.1-flash
+    ui:
+      selection_group: image
+      visible_in: [project_settings, series_settings, global_settings]
+      order: 160
+    params:
+      size:
+        options: ["1024*1024", "1280*720", "720*1280", "1536*1024", "1024*1536"]
+        default: "1024*1024"
+      negativePrompt: true
+      seed: true
+
+  - id: agnes-video-2.0
+    display_name: "Agnes Video V2.0"
+    description: "Advanced image-to-video and reference-to-video generation for cinematic animation and creative video content"
+    status: active
+    release_stage: stable
+    capabilities: [i2v, r2v]
+    duration:
+      type: slider
+      min: 2
+      max: 10
+      step: 1
+      default: 5
+    docs:
+      context_hub_doc_ids: [sapiens/agnes]
+    runtime:
+      agnes:
+        gateway: agnes
+        api_model_id: agnes-video-2.0
+    ui:
+      selection_group: i2v
+      visible_in: [project_settings, series_settings, global_settings, video_sidebar]
+      order: 150
+    params:
+      movementAmplitude:
+        options: ["low", "medium", "high"]
+        default: "medium"
+      seed: true

@@ -1,0 +1,52 @@
+name: Compatibility feedback
+description: Report a real file, browser, renderer, or private deployment compatibility issue.
+title: "[compatibility]: "
+labels:
+  - compatibility
+body:
+  - type: dropdown
+    id: format
+    attributes:
+      label: File type
+      options:
+        - Office / Word / Excel / PowerPoint
+        - PDF / OFD / Typst
+        - CAD / DWG / DXF / DWF
+        - Archive / ZIP / RAR / 7Z / TAR
+        - Email / EML / MSG / MBOX
+        - Image / media / code / data
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: extension
+    attributes:
+      label: Extension
+      placeholder: docx, pptx, dwg, zip, eml
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: What happened?
+      description: Describe the visible result, console errors, failed network resources, or fidelity issue.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser/version, OS, mobile WebView, framework, package names and versions.
+      placeholder: Chrome 126, Vue 3, @file-viewer/vue3-full 2.1.6, intranet deployment
+    validations:
+      required: true
+  - type: textarea
+    id: deployment
+    attributes:
+      label: Deployment details
+      description: Note whether Worker/WASM/fonts/vendor assets are self-hosted, and include relevant static paths or CSP notes.
+  - type: textarea
+    id: sample
+    attributes:
+      label: Sample file
+      description: Attach only public or sanitized files. If you cannot share the file, describe its origin and structure.

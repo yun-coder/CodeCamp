@@ -1,0 +1,36 @@
+name: Bug report
+description: Report a reproducible bug in File Viewer.
+title: "[bug]: "
+labels:
+  - bug
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What broke, and what did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Provide a minimal reproduction, demo URL, or steps using demo.file-viewer.app.
+      placeholder: |
+        1. Open ...
+        2. Select ...
+        3. See ...
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: Browser, OS, framework, package names and versions
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Console or network errors
+      render: text

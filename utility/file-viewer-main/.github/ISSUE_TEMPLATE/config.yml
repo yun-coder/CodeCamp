@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://doc.file-viewer.app
+    about: Read setup guides, API notes, format support, and deployment docs.
+  - name: Live demo
+    url: https://demo.file-viewer.app
+    about: Try public samples or test a sanitized local file before opening an issue.

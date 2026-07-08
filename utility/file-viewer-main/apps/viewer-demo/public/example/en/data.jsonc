@@ -1,0 +1,8 @@
+{
+  // JSONC is common in editor and tooling configuration files.
+  "viewer": "Flyfish File Viewer",
+  "locale": "en-US",
+  "presets": ["lite", "office", "engineering"],
+  "copyAssets": true
+}
+

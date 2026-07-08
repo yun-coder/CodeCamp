@@ -1,0 +1,8 @@
+version: 1
+defaults:
+  model_settings:
+    t2i_model: agnes-3.7-plus
+    i2i_model: agnes-image-2.1-flash
+    i2v_model: agnes-video-2.0
+    r2v_model: agnes-video-2.0
+    image_model: agnes-image-2.1-flash

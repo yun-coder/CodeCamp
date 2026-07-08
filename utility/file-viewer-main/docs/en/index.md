@@ -1,0 +1,197 @@
+---
+layout: page
+title: Flyfish Viewer
+titleTemplate: false
+---
+
+<main class="doc-home doc-home-v2">
+<nav class="doc-home-anchor" aria-label="Documentation home navigation">
+<a href="#capability">Capability</a>
+<a href="#demo">Demo</a>
+<a href="#presets">Presets</a>
+<a href="#ecosystem">Ecosystem</a>
+<a href="#formats">Formats</a>
+<a href="#delivery">Delivery</a>
+</nav>
+
+<section id="capability" class="doc-start doc-product-hero">
+<div class="doc-start-copy">
+<span class="doc-eyebrow">Flyfish Viewer Docs</span>
+<h1>Browser-native file preview for internal and private web apps.</h1>
+<p>
+Flyfish Viewer is browser-side file preview infrastructure for business applications, without server-side conversion. It covers office documents, engineering drawings, archives, email, ebooks, code, images, media, and structured data. This documentation connects the capability matrix, integration paths, modular boundaries, offline deployment, and production validation in one place.
+</p>
+<div class="doc-home-actions">
+<a class="doc-action doc-action-primary" href="https://demo.file-viewer.app" target="_blank" rel="noreferrer">Try the demo</a>
+<a class="doc-action" href="/en/guide/formats">View format matrix</a>
+<a class="doc-action" href="/en/guide/compare">Compare options</a>
+<a class="doc-action" href="/en/guide/quickstart">Open quickstart</a>
+</div>
+<div class="doc-start-stats" aria-label="Flyfish Viewer capability metrics">
+<div><strong>206</strong><span>extension mappings</span></div>
+<div><strong>24</strong><span>preview pipelines</span></div>
+<div><strong>Offline</strong><span>self-hosted Worker / WASM / fonts</span></div>
+<div><strong>Modular</strong><span>preset and renderer composition</span></div>
+</div>
+</div>
+
+<div class="doc-capability-panel" aria-label="Flyfish Viewer capability overview">
+<div class="doc-panel-top">
+<span></span><span></span><span></span>
+<strong>preview platform</strong>
+</div>
+<div class="doc-preview-board">
+<div class="doc-preview-main">
+<span>active document</span>
+<strong>PDF · DOCX · DWG · ZIP</strong>
+<p>Renderers, workers, WASM, fonts, and offline vendor assets load by file type, keeping the first script lean even for full-format pages.</p>
+<div class="doc-preview-pills">
+<b>Search</b><b>Zoom</b><b>Print</b><b>Export</b>
+</div>
+</div>
+<div class="doc-preview-rail">
+<span class="is-active">Office fidelity</span>
+<span>Engineering CAD</span>
+<span>Archive nested preview</span>
+<span>Offline assets</span>
+</div>
+</div>
+<div class="doc-platform-points">
+<div><strong>Unified UX</strong><span>Search, highlight, zoom, print, export, watermark, toolbar permissions, and lifecycle hooks.</span></div>
+<div><strong>Enterprise delivery</strong><span>Intranet assets, Docker, Cloudflare Pages, release artifacts, and private CDN paths.</span></div>
+<div><strong>Native ecosystem</strong><span>Vanilla JS, Vue, React, Svelte, and jQuery share the same core capability layer.</span></div>
+</div>
+</div>
+</section>
+
+<section class="doc-section doc-capability-section">
+<div class="doc-section-heading">
+<span>Platform Capability</span>
+<h2>More than file display: a production-ready preview layer for frontend teams.</h2>
+<p>From format detection, rendering orchestration, asset loading, and user interaction to deployment, Flyfish Viewer splits complex preview behavior into controlled, testable, and upgradeable capability modules.</p>
+</div>
+<div class="doc-feature-grid">
+<article class="doc-card"><strong>Format fidelity</strong><h3>Real business attachments</h3><p>PDF, Word, Excel, PPTX, OFD, Typst, CAD, DWF, PSD, Mermaid, PlantUML, and nested archive preview are maintained as focused modules.</p></article>
+<article class="doc-card"><strong>Performance by design</strong><h3>Heavy dependencies load on demand</h3><p>Renderers, workers, WASM, fonts, and vendor assets are layered so the full IIFE entry does not push every capability into the first script.</p></article>
+<article class="doc-card"><strong>Consistent interaction</strong><h3>Viewer-level operations stay unified</h3><p>Search, zoom, print, export, download, watermark, toolbar permissions, and lifecycle hooks stay consistent across preview pipelines.</p></article>
+<article class="doc-card"><strong>Enterprise delivery</strong><h3>Public, intranet, and offline deployment</h3><p>Worker, WASM, and font assets can be self-hosted with Docker, static hosting, Cloudflare Pages, release packages, and private CDNs.</p></article>
+</div>
+</section>
+
+<section id="demo" class="doc-demo-stage">
+<div class="doc-section-heading">
+<span>Live Experience</span>
+<h2>Validate the viewer before choosing your integration surface.</h2>
+<p>The demo uses real samples, lazy renderers, responsive controls, document comparison, and offline asset paths that mirror production deployment.</p>
+</div>
+<div class="doc-demo-layout">
+<figure class="doc-demo-visual">
+<img src="/_media/flyfish-viewer-demo.gif" alt="Flyfish Viewer live demo showing document preview and comparison" />
+<figcaption>Live browser demo covering Word, PDF, PPTX, archives, drawings, charts, and side-by-side comparison.</figcaption>
+</figure>
+<div class="doc-demo-actions">
+<a class="doc-path-card" href="https://demo.file-viewer.app" target="_blank" rel="noreferrer">
+<strong>Main Demo</strong>
+<span>Open samples, upload local files, test mobile viewports, and verify toolbar behavior.</span>
+</a>
+<a class="doc-path-card" href="https://demo.file-viewer.app/compare.html" target="_blank" rel="noreferrer">
+<strong>Document Compare</strong>
+<span>Side-by-side preview, synchronized scrolling, search navigation, and PDF toolbar hiding.</span>
+</a>
+<a class="doc-path-card" href="/en/guide/demo">
+<strong>Demo Guide</strong>
+<span>Review sample coverage, deployment boundaries, and common verification flows.</span>
+</a>
+</div>
+</div>
+</section>
+
+<section id="presets" class="doc-section doc-section-muted doc-preset-section">
+<div class="doc-section-heading">
+<span>Modular Integration</span>
+<h2>Install the component first. Add document capabilities deliberately.</h2>
+<p>Production apps should start from the native component package, then add the smallest preset or renderer set that matches the product. <code>preset-all</code> is complete, but intentionally heavier.</p>
+</div>
+<div class="doc-preset-grid">
+<article class="doc-card doc-preset-card">
+<strong>Light attachments</strong>
+<h3>@file-viewer/preset-lite</h3>
+<p>Images, text, Markdown, code, and common media files.</p>
+</article>
+<article class="doc-card doc-preset-card">
+<strong>Office workflows</strong>
+<h3>@file-viewer/preset-office</h3>
+<p>PDF, Word, Excel, PowerPoint, OFD, RTF, and OpenDocument workflows.</p>
+</article>
+<article class="doc-card doc-preset-card">
+<strong>Engineering files</strong>
+<h3>@file-viewer/preset-engineering</h3>
+<p>CAD, EDA, 3D, geospatial, drawing, and structured engineering assets.</p>
+</article>
+<article class="doc-card doc-preset-card">
+<strong>Full workbench</strong>
+<h3>@file-viewer/preset-all</h3>
+<p>Use for full-format workbenches and release validation. Evaluate size before using in business pages.</p>
+</article>
+</div>
+<div class="doc-callout doc-callout-compact">
+<strong>Installation boundary:</strong> installing <code>@file-viewer/vue3</code>, <code>@file-viewer/react</code>, or <code>@file-viewer/web</code> is the lightest integration path, but it does not include every renderer. Add the preset or renderer package for the formats you need.
+</div>
+<div class="doc-callout doc-callout-compact">
+<strong>Full one-shot setup:</strong> heavy users, internal attachment centers, and validation environments can install <code>@file-viewer/preset-all</code>, keep the same <code>fileViewerRenderers({ copyAssets:true })</code> config, and get the complete official demo capability set immediately.
+<pre><code>pnpm add @file-viewer/vue3 @file-viewer/preset-all
+pnpm add -D @file-viewer/vite-plugin # optional for Vite</code></pre>
+</div>
+</section>
+
+<section id="ecosystem" class="doc-section">
+<div class="doc-section-heading">
+<span>Native Ecosystem</span>
+<h2>Native packages for every stack. iframe remains an integration option, not the core path.</h2>
+<p>Every package shares the same core capabilities, options, events, search, zoom, print, export, and lifecycle hooks while keeping framework-native ergonomics.</p>
+</div>
+<div class="doc-path-grid doc-ecosystem-grid">
+<a class="doc-path-card" href="/en/guide/quickstart-web"><strong>Vanilla JS / Web Component</strong><span>Custom Element or command-style mount for any page.</span></a>
+<a class="doc-path-card" href="/en/guide/quickstart-vue3"><strong>Vue 3</strong><span>Plugin install, component props, events, refs/controllers, and toolbar customization.</span></a>
+<a class="doc-path-card" href="/en/guide/quickstart-vue2"><strong>Vue 2.7 / Vue 2.6</strong><span>Legacy-friendly packages with the same option model as Vue 3.</span></a>
+<a class="doc-path-card" href="/en/guide/quickstart-react"><strong>React / React Legacy</strong><span>Hooks, refs, event callbacks, and legacy React support.</span></a>
+<a class="doc-path-card" href="/en/guide/ecosystem#svelte"><strong>Svelte</strong><span>Component and action-based integration for SvelteKit and lightweight apps.</span></a>
+<a class="doc-path-card" href="/en/guide/ecosystem#jquery"><strong>jQuery</strong><span>Use <code>$(el).fileViewer(options)</code> in traditional admin systems.</span></a>
+</div>
+</section>
+
+<section id="formats" class="doc-section doc-format-panel">
+<div class="doc-section-heading">
+<span>Format Matrix</span>
+<h2>Broad business-file coverage with clear extension points.</h2>
+<p>Heavy parsers, workers, WASM files, and offline vendor assets load only when the active file type needs them.</p>
+</div>
+<div class="doc-format-grid">
+<div><strong>Office</strong><span>DOCX / XLSX / PPTX / PDF / OFD / Typst</span></div>
+<div><strong>Engineering</strong><span>DWG / DXF / DWF / 3D / GIS / EDA / OLB / DRA</span></div>
+<div><strong>Knowledge</strong><span>Markdown / Code / Git patch / Git bundle / Mermaid / PlantUML</span></div>
+<div><strong>Assets</strong><span>PSD / Images / HEIC / Audio / Video / Fonts / SQLite / Parquet</span></div>
+<div><strong>Containers</strong><span>ZIP / RAR / 7Z / TAR / GZIP and nested preview</span></div>
+<div><strong>Collaboration</strong><span>EML / MSG / XMind / draw.io / Excalidraw / EPUB / UMD</span></div>
+</div>
+<div class="doc-link-row">
+<a href="/en/guide/formats">Open the format matrix</a>
+<a href="/en/guide/format-fidelity">Review fidelity notes</a>
+</div>
+</section>
+
+<section id="delivery" class="doc-final-band doc-final-band-v2">
+<div>
+<span>Delivery</span>
+<h2>A complete delivery path for intranet, private deployment, and open-source distribution.</h2>
+<p>
+Docs, demo, official site, npm packages, Docker images, GitHub source aggregation, and release artifacts are maintained together. For higher fidelity and extreme performance, follow the official site to the commercial native document engine.
+</p>
+</div>
+<div class="doc-final-actions">
+<a class="doc-action doc-action-primary" href="/en/guide/distribution">Distribution</a>
+<a class="doc-action" href="/en/guide/docker">Docker</a>
+<a class="doc-action" href="https://github.com/flyfish-dev/file-viewer" target="_blank" rel="noreferrer">GitHub</a>
+</div>
+</section>
+</main>
