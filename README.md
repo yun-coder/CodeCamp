@@ -2,8 +2,8 @@
 
 个人 AI 学习项目集合。这个仓库用于集中索引、保存和实验多个 AI、Agent、RAG、视频生成、金融数据、工具平台类项目，方便横向学习、对比技术栈和沉淀本地实践。
 
-> **最后更新：** 2026-07-08  
-> **当前项目总数：** 44 个（37 个有效项目 + 7 个计划/空目录）  
+> **最后更新：** 2026-07-13  
+> **当前项目总数：** 45 个（37 个有效项目 + 8 个计划/空目录）  
 > **目录结构：** 8 个分类文件夹，扁平化索引
 
 ---
@@ -23,12 +23,12 @@
 CodeCamp/
 ├── video-media-gen/    # 🎬 AI 视频/图像/媒体生成（11 个）
 ├── ai-agent/           # 🤖 AI Agent 与技能框架（7 个）
-├── ai-tools/           # 🔧 AI 工具与平台（5 个）
-├── ai-voice/           # 🎙️ AI 语音（2 个）
+├── ai-tools/           # 🔧 AI 工具与平台（6 个）
+├── ai-voice/           # 🎙️ AI 语音（1 个）
 ├── utility/            # 🧩 工具集合/金融/游戏（7 个）
 ├── learning/           # 📚 学习资料与教程（5 个）
 ├── spatial/            # 📡 空间智能（1 个）
-├── planned/            # 📋 计划/空目录（6 个）
+├── planned/            # 📋 计划/空目录（7 个）
 └── README.md
 ```
 
@@ -73,13 +73,13 @@ CodeCamp/
 | [project-helper](ai-tools/project-helper/) | GitHub 仓库学习助手，自动生成源码报告 | Python, FastAPI, DeepSeek, Vue |
 | [loop-engineering](ai-tools/loop-engineering/) | Loop 工程自动化引擎，自动从收件箱拾取任务，git worktree 隔离执行 | Python, Bash, Git worktrees |
 | [career-ops](ai-tools/career-ops/) | AI 驱动的求职/Offer 管理系统（职位评估、简历生成） | Node.js, Playwright, Go |
+| [aella-data-explorer](ai-tools/aella-data-explorer/) | 科学论文交互式探索应用，语义嵌入 + 降维 + 聚类可视化 | React, TypeScript, D3.js, Python FastAPI |
 
 ### 🎙️ ai-voice/ — AI 语音
 
 | 项目 | 简介 | 技术栈 |
 |---|---|---|
 | [voicebox](ai-voice/voicebox/) | 开源 AI 语音工作室，7 种 TTS 引擎、声音克隆、MCP 输出 | Rust (Tauri), Python, React, MLX, MCP |
-| [JoyAI-Echo](ai-voice/JoyAI-Echo/) | AI 语音交互实验项目 | — |
 
 ### 🧩 utility/ — 工具集合 / 金融 / 游戏
 
@@ -119,6 +119,7 @@ CodeCamp/
 | [html-video](planned/html-video/) | HTML 转视频工具 |
 | [IDM-VTON](planned/IDM-VTON/) | 图像驱动虚拟试穿模型 |
 | [mmdetection3d](planned/mmdetection3d/) | OpenMMLab 3D 目标检测工具箱 |
+| [JoyAI-Echo](ai-voice/JoyAI-Echo/) | AI 语音交互实验项目 |
 
 ---
 
