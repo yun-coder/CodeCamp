@@ -1,1 +1,0 @@
-生成视频：{{camera_movement}}

@@ -1,1 +1,0 @@
-"""Mock API Django app."""

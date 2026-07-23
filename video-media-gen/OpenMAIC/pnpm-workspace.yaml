@@ -1,4 +1,0 @@
-packages:
-  - "packages/*"
-  - "packages/@maic/*"
-  - "!packages/docs" # standalone docs sub-app: own lockfile, build, deploy
