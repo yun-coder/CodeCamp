@@ -1,0 +1,24 @@
+{
+  "name": "skyline-globe",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "catalog:build": "node scripts/build-catalog.mjs",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "hls.js": "^1.6.16",
+    "lucide-react": "^0.468.0",
+    "maplibre-gl": "^5.24.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "playwright-core": "^1.62.1",
+    "vite": "^6.0.5"
+  }
+}

@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkylineWebcams — Live Player</title>
+<style>
+/* ============================================================
+   CSS Variables — Dark Theme
+   ============================================================ */
+:root {
+  --bg-primary:    #0f0f14;
+  --bg-secondary:  #181822;
+  --bg-sidebar:    #14141d;
+  --bg-hover:      #1e1e2e;
+  --bg-active:     #252538;
+  --bg-card:       #1a1a26;
+  --border:        #2a2a3a;
+  --text-primary:  #e0e0e8;
+  --text-secondary:#9090a8;
+  --text-muted:    #606078;
+  --accent:        #6c8cff;
+  --accent-dim:    #4a5fb0;
+  --hls-badge:     #22aa66;
+  --yt-badge:      #e04040;
+  --offline-badge: #888;
+  --error-bg:      rgba(220, 40, 40, 0.12);
+  --error-text:    #ff6666;
+  --success-bg:    rgba(40, 200, 80, 0.12);
+  --success-text:  #55d488;
+  --radius:        8px;
+  --radius-sm:     4px;
+  --shadow:        0 2px 12px rgba(0,0,0,0.4);
+  --transition:    0.2s ease;
+  --sidebar-w:     360px;
+  --topbar-h:      56px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html, body {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+               Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  overflow: hidden;
+}
+
+/* ---- Layout ---- */
+.app-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* ---- Left Sidebar ---- */
+.sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+  transition: transform var(--transition);
+}
+
+.sidebar-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.sidebar-header h1 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sidebar-header h1 .dot { width:8px; height:8px; border-radius:50%; background:var(--hls-badge); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+
+.search-wrap {
+  display: flex;
+  gap: 6px;
+}
+.search-wrap input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 13px;
+  outline: none;
+  transition: border-color var(--transition);
+}
+.search-wrap input:focus { border-color: var(--accent); }
+.search-wrap input::placeholder { color: var(--text-muted); }
+.search-wrap select {
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 12px;
+  outline: none;
+  cursor: pointer;
+}
+
+.camera-count {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 8px;
+  padding: 0 2px;
+}
+
+/* ---- Camera List ---- */
+.camera-list {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.camera-list::-webkit-scrollbar { width: 6px; }
+.camera-list::-webkit-scrollbar-track { background: transparent; }
+.camera-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* Country group */
+.country-group {
+  border-bottom: 1px solid var(--border);
+}
+.country-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  cursor: pointer;
+  user-select: none;
+  transition: background var(--transition);
+  position: sticky;
+  top: 0;
+  background: var(--bg-sidebar);
+  z-index: 2;
+}
+.country-header:hover { background: var(--bg-hover); }
+.country-header .country-name { font-size: 13px; font-weight: 600; }
+.country-header .country-badge {
+  font-size: 11px;
+  background: var(--bg-primary);
+  padding: 2px 8px;
+  border-radius: 10px;
+  color: var(--text-secondary);
+  margin-left: 8px;
+}
+.country-header .arrow {
+  font-size: 10px;
+  transition: transform var(--transition);
+  color: var(--text-muted);
+}
+.country-header.collapsed .arrow { transform: rotate(-90deg); }
+
+.country-cameras {
+  overflow: hidden;
+  transition: max-height 0.35s ease;
+}
+.country-cameras.collapsed { max-height: 0 !important; }
+
+/* Camera item */
+.camera-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px 8px 28px;
+  cursor: pointer;
+  transition: background var(--transition);
+  border-left: 3px solid transparent;
+}
+.camera-item:hover { background: var(--bg-hover); }
+.camera-item.active {
+  background: var(--bg-active);
+  border-left-color: var(--accent);
+}
+.camera-item .thumb {
+  width: 60px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--bg-card);
+}
+.camera-item .thumb-placeholder {
+  width: 60px; height: 38px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  background: var(--bg-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: var(--text-muted);
+}
+.camera-item .cam-info {
+  flex: 1;
+  min-width: 0;
+}
+.camera-item .cam-name {
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+.camera-item .cam-city {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.camera-item .badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.badge-hls { background: var(--hls-badge); color: #fff; }
+.badge-yt  { background: var(--yt-badge);  color: #fff; }
+
+/* No results */
+.no-results {
+  padding: 40px 16px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* ---- Right Main Area ---- */
+.main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Info bar */
+.info-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  min-height: 56px;
+}
+.info-bar .cam-title { font-size: 15px; font-weight: 600; }
+.info-bar .cam-meta { font-size: 12px; color: var(--text-secondary); }
+.info-bar .info-right { display: flex; align-items: center; gap: 10px; }
+
+/* Player area */
+.player-area {
+  flex: 1;
+  position: relative;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.player-area video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.player-area iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* Placeholder */
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: var(--text-muted);
+}
+.placeholder .icon { font-size: 64px; opacity: 0.4; }
+.placeholder .text { font-size: 16px; }
+
+/* Stream error overlay */
+.stream-error {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--error-text);
+  z-index: 5;
+}
+.stream-error .err-icon { font-size: 48px; }
+.stream-error .err-msg  { font-size: 15px; text-align: center; padding: 0 20px; }
+
+/* Loading spinner */
+.spinner-wrap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.5);
+  z-index: 5;
+}
+.spinner {
+  width: 44px; height: 44px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Initial loading */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-primary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 100;
+}
+.loading-overlay .spinner { width: 48px; height: 48px; }
+.loading-overlay .text { color: var(--text-secondary); font-size: 14px; }
+
+/* ---- Responsive: Narrow screens ---- */
+@media (max-width: 800px) {
+  .app-container { flex-direction: column; }
+  .sidebar {
+    width: 100%;
+    min-width: 100%;
+    max-height: 45vh;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .main-area { height: 55vh; }
+  .info-bar { padding: 8px 12px; min-height: 44px; }
+  .info-bar .cam-title { font-size: 13px; }
+}
+
+/* ---- Mobile toggle button ---- */
+.mobile-toggle {
+  display: none;
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: none;
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  z-index: 50;
+  box-shadow: var(--shadow);
+}
+@media (max-width: 800px) {
+  .mobile-toggle { display: flex; align-items:center; justify-content:center; }
+  .sidebar { position: fixed; top: var(--topbar-h); left:0; right:0; bottom:0;
+             max-height: none; transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+}
+</style>
+</head>
+<body>
+
+<!-- Initial loading overlay -->
+<div id="loadingOverlay" class="loading-overlay">
+  <div class="spinner"></div>
+  <div class="text">Loading webcam data…</div>
+</div>
+
+<!-- Mobile toggle -->
+<button id="mobileToggle" class="mobile-toggle" aria-label="Toggle sidebar">☰</button>
+
+<div class="app-container">
+  <!-- ========== LEFT SIDEBAR ========== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h1><span class="dot"></span> SkylineWebcams</h1>
+      <div class="search-wrap">
+        <input type="text" id="searchInput" placeholder="Search cameras…" autocomplete="off">
+        <select id="typeFilter">
+          <option value="all">All</option>
+          <option value="hls">HLS</option>
+          <option value="youtube">YouTube</option>
+        </select>
+      </div>
+      <div class="camera-count" id="cameraCount">Loading…</div>
+    </div>
+    <div class="camera-list" id="cameraList"></div>
+  </aside>
+
+  <!-- ========== RIGHT MAIN AREA ========== -->
+  <main class="main-area">
+    <div class="info-bar" id="infoBar">
+      <div>
+        <div class="cam-title" id="infoTitle">No camera selected</div>
+        <div class="cam-meta" id="infoMeta">Select a camera from the list to start watching</div>
+      </div>
+      <div class="info-right">
+        <span class="badge" id="infoBadge" style="display:none"></span>
+      </div>
+    </div>
+    <div class="player-area" id="playerArea">
+      <div class="placeholder" id="placeholder">
+        <div class="icon">📡</div>
+        <div class="text">Select a camera to start watching</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- hls.js from CDN -->
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+<script>
+/* ============================================================
+   Player Demo — SkylineWebcams Live Player
+   ============================================================ */
+
+// ---- Country slug → display name map ----
+const COUNTRY_NAMES = {
+  "albania":"Albania","argentina":"Argentina","australia":"Australia","austria":"Austria",
+  "barbados":"Barbados","belize":"Belize","bermuda":"Bermuda","bolivia":"Bolivia",
+  "bosnia-and-herzegovina":"Bosnia & Herzegovina","brasil":"Brazil","bulgaria":"Bulgaria",
+  "cabo-verde":"Cabo Verde","canada":"Canada","caribbean-netherlands":"Caribbean Netherlands",
+  "chile":"Chile","china":"China","costa-rica":"Costa Rica","cyprus":"Cyprus",
+  "czech-republic":"Czech Republic","dominican-republic":"Dominican Republic",
+  "ecuador":"Ecuador","el-salvador":"El Salvador","ellada":"Greece","espana":"Spain",
+  "faroe-islands":"Faroe Islands","france":"France","deutschland":"Germany",
+  "grenada":"Grenada","guadeloupe":"Guadeloupe","honduras":"Honduras",
+  "hrvatska":"Croatia","hungary":"Hungary","iceland":"Iceland","ireland":"Ireland",
+  "israel":"Israel","italia":"Italy","jordan":"Jordan","kenya":"Kenya",
+  "luxembourg":"Luxembourg","maldives":"Maldives","malta":"Malta",
+  "martinique":"Martinique","mauritius":"Mauritius","mexico":"Mexico",
+  "morocco":"Morocco","norge":"Norway","panama":"Panama","peru":"Peru",
+  "poland":"Poland","portugal":"Portugal","puerto-rico":"Puerto Rico",
+  "repubblica-di-san-marino":"San Marino","romania":"Romania","schweiz":"Switzerland",
+  "senegal":"Senegal","seychelles":"Seychelles","sint-maarten":"Sint Maarten",
+  "slovenija":"Slovenia","south-africa":"South Africa","sri-lanka":"Sri Lanka",
+  "thailand":"Thailand","turkey":"Turkey","united-kingdom":"United Kingdom",
+  "united-states":"United States","uruguay":"Uruguay","us-virgin-islands":"US Virgin Islands",
+  "venezuela":"Venezuela","vietnam":"Vietnam","zambia":"Zambia","zanzibar":"Zanzibar"
+};
+
+// ---- State ----
+let allData   = {};   // Raw webcams.json content
+let activeCam = null; // Currently selected camera object
+let hls       = null; // hls.js instance
+let videoEl   = null; // current <video> element
+let ytIframe  = null; // current YouTube <iframe>
+
+// ---- DOM refs ----
+const $ = (s) => document.getElementById(s);
+const loadingOverlay = $('loadingOverlay');
+const cameraList     = $('cameraList');
+const cameraCount    = $('cameraCount');
+const searchInput    = $('searchInput');
+const typeFilter     = $('typeFilter');
+const infoTitle      = $('infoTitle');
+const infoMeta       = $('infoMeta');
+const infoBadge      = $('infoBadge');
+const playerArea     = $('playerArea');
+const placeholder    = $('placeholder');
+const mobileToggle   = $('mobileToggle');
+const sidebar        = $('sidebar');
+
+// ---- Load data ----
+async function loadData() {
+  try {
+    const resp = await fetch('./webcams.json');
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    allData = await resp.json();
+    if (typeof allData !== 'object' || allData === null) throw new Error('Invalid JSON structure');
+  } catch(e) {
+    console.error('Failed to load webcams.json:', e);
+    loadingOverlay.querySelector('.text').textContent =
+      'Failed to load webcams.json. Ensure webcams.json is in the same directory.';
+    loadingOverlay.querySelector('.spinner').style.display = 'none';
+    return;
+  }
+  loadingOverlay.style.display = 'none';
+
+  // ---- Auto-select first online HLS camera (fallback to YouTube) ----
+  let firstCam = null, firstCountry = null;
+  const sorted = Object.keys(allData).sort((a, b) =>
+    (COUNTRY_NAMES[a] || a).localeCompare(COUNTRY_NAMES[b] || b)
+  );
+  for (const slug of sorted) {
+    for (const cam of (allData[slug] || [])) {
+      if (cam.stream_type === 'hls' && cam.status === 'online' && cam.full_stream_url) {
+        firstCam = cam; firstCountry = slug; break;
+      }
+    }
+    if (firstCam) break;
+  }
+  if (!firstCam) {
+    for (const slug of sorted) {
+      for (const cam of (allData[slug] || [])) {
+        if (cam.stream_type === 'youtube' && cam.full_stream_url) {
+          firstCam = cam; firstCountry = slug; break;
+        }
+      }
+      if (firstCam) break;
+    }
+  }
+  if (firstCam) collapseState[firstCountry] = false;
+
+  renderAll();
+
+  if (firstCam) selectCamera(firstCam, firstCountry);
+}
+
+// ---- Render sidebar ----
+let collapseState = {}; // country → bool (true = collapsed)
+
+function renderAll() {
+  const query   = searchInput.value.toLowerCase().trim();
+  const filter  = typeFilter.value; // "all" | "hls" | "youtube"
+  const frag    = document.createDocumentFragment();
+  let totalVis  = 0;
+
+  // Sort countries by display name
+  const sortedCountries = Object.keys(allData).sort((a, b) =>
+    (COUNTRY_NAMES[a] || a).localeCompare(COUNTRY_NAMES[b] || b)
+  );
+
+  for (const slug of sortedCountries) {
+    const cameras = allData[slug];
+    if (!Array.isArray(cameras)) continue;
+
+    // Filter
+    const filtered = cameras.filter(cam => {
+      if (filter === 'hls' && cam.stream_type !== 'hls') return false;
+      if (filter === 'youtube' && cam.stream_type !== 'youtube') return false;
+      if (query) {
+        const haystack = [
+          cam.link_text || '',
+          cam.camera_name || '',
+          cam.city || '',
+          cam.region || '',
+          cam.country || '',
+          COUNTRY_NAMES[slug] || ''
+        ].join(' ').toLowerCase();
+        if (!haystack.includes(query)) return false;
+      }
+      return true;
+    });
+
+    if (filtered.length === 0) continue;
+    totalVis += filtered.length;
+
+    // Collapsed state
+    const isCollapsed = collapseState[slug] === true;
+
+    const group = document.createElement('div');
+    group.className = 'country-group';
+
+    // Country header
+    const header = document.createElement('div');
+    header.className = 'country-header' + (isCollapsed ? ' collapsed' : '');
+    header.innerHTML = `
+      <span>
+        <span class="country-name">${COUNTRY_NAMES[slug] || slug}</span>
+        <span class="country-badge">${cameras.length}</span>
+      </span>
+      <span class="arrow">▼</span>
+    `;
+    header.addEventListener('click', () => {
+      const camsDiv = header.nextElementSibling;
+      const wasCollapsed = camsDiv.classList.contains('collapsed');
+      collapseState[slug] = !wasCollapsed;
+      if (wasCollapsed) {
+        // Force reflow: remove max-height=0 so scrollHeight is computed correctly
+        camsDiv.style.maxHeight = 'none';
+        // Read scrollHeight to force reflow
+        void camsDiv.offsetHeight;
+        camsDiv.style.maxHeight = camsDiv.scrollHeight + 'px';
+        camsDiv.classList.remove('collapsed');
+        header.classList.remove('collapsed');
+        // After transition, remove inline maxHeight so content can grow
+        const onTransitionEnd = () => {
+          camsDiv.style.maxHeight = 'none';
+          camsDiv.removeEventListener('transitionend', onTransitionEnd);
+        };
+        camsDiv.addEventListener('transitionend', onTransitionEnd);
+      } else {
+        camsDiv.style.maxHeight = camsDiv.scrollHeight + 'px';
+        // Force reflow
+        void camsDiv.offsetHeight;
+        camsDiv.classList.add('collapsed');
+        camsDiv.style.maxHeight = '0px';
+        header.classList.add('collapsed');
+      }
+    });
+
+    // Camera items
+    const camsDiv = document.createElement('div');
+    camsDiv.className = 'country-cameras' + (isCollapsed ? ' collapsed' : '');
+    camsDiv.style.maxHeight = isCollapsed ? '0px' : 'none';
+
+    for (const cam of filtered) {
+      const item = document.createElement('div');
+      item.className = 'camera-item';
+      item.dataset.country = slug;
+      // Use a composite key for identifying the camera
+      item.dataset.camKey = cam.page_url || `${cam.country}/${cam.camera_name}`;
+
+      // Thumbnail
+      let thumbHtml;
+      if (cam.thumbnail_url) {
+        thumbHtml = `<img class="thumb" src="${escAttr(cam.thumbnail_url)}" loading="lazy" alt="">`;
+      } else {
+        const icon = cam.stream_type === 'youtube' ? '▶' : '📷';
+        thumbHtml = `<div class="thumb-placeholder">${icon}</div>`;
+      }
+
+      // Badge
+      let badgeHtml = '';
+      if (cam.stream_type === 'hls') {
+        badgeHtml = '<span class="badge badge-hls">HLS</span>';
+      } else if (cam.stream_type === 'youtube') {
+        badgeHtml = '<span class="badge badge-yt">YT</span>';
+      }
+
+      const name = cam.link_text || cam.camera_name || 'Unknown';
+      const city = cam.city || '';
+
+      item.innerHTML = `
+        ${thumbHtml}
+        <div class="cam-info">
+          <div class="cam-name" title="${escAttr(name)}">${escHtml(name)}</div>
+          <div class="cam-city">${escHtml(city)}</div>
+        </div>
+        ${badgeHtml}
+      `;
+
+      item.addEventListener('click', () => selectCamera(cam, slug));
+      camsDiv.appendChild(item);
+    }
+
+    group.appendChild(header);
+    group.appendChild(camsDiv);
+    frag.appendChild(group);
+  }
+
+  cameraList.innerHTML = '';
+  cameraList.appendChild(frag);
+
+  // Update count
+  cameraCount.textContent = `Showing ${totalVis} of 2,141 cameras`;
+
+  if (totalVis === 0) {
+    cameraList.innerHTML = '<div class="no-results">No cameras match your search</div>';
+  }
+
+  // Re-highlight active
+  if (activeCam) {
+    highlightActive();
+  }
+}
+
+// ---- Highlight active camera ----
+function highlightActive() {
+  if (!activeCam) return;
+  document.querySelectorAll('.camera-item.active').forEach(el => el.classList.remove('active'));
+  const key = activeCam.page_url || `${activeCam.country}/${activeCam.camera_name}`;
+  const el = document.querySelector(`.camera-item[data-cam-key="${CSS.escape(key)}"]`);
+  if (el) {
+    el.classList.add('active');
+    el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+}
+
+// ---- Select & play camera ----
+function selectCamera(cam, countrySlug) {
+  activeCam = cam;
+
+  // Update info bar
+  const name    = cam.link_text || cam.camera_name || 'Unknown';
+  const displayCountry = COUNTRY_NAMES[countrySlug] || countrySlug;
+  const location = [cam.city, cam.region, displayCountry].filter(Boolean).join(', ');
+  infoTitle.textContent = name;
+  infoMeta.textContent  = location;
+
+  // Badge
+  if (cam.stream_type === 'hls') {
+    infoBadge.style.display = '';
+    infoBadge.className = 'badge badge-hls';
+    infoBadge.textContent = 'HLS';
+  } else if (cam.stream_type === 'youtube') {
+    infoBadge.style.display = '';
+    infoBadge.className = 'badge badge-yt';
+    infoBadge.textContent = 'YouTube';
+  } else {
+    infoBadge.style.display = 'none';
+  }
+
+  // Highlight
+  highlightActive();
+
+  // Play
+  playStream(cam);
+}
+
+// ---- Play stream ----
+function playStream(cam) {
+  // Clean up previous
+  destroyPlayer();
+
+  // Hide placeholder
+  placeholder.style.display = 'none';
+
+  if (cam.stream_type === 'hls' && cam.full_stream_url) {
+    playHLS(cam.full_stream_url);
+  } else if (cam.stream_type === 'youtube' && cam.full_stream_url) {
+    playYouTube(cam.full_stream_url);
+  } else if (cam.status === 'offline') {
+    showError('This camera is currently offline.');
+  } else {
+    showError('No playable stream available for this camera.');
+  }
+}
+
+// ---- HLS playback via hls.js ----
+function playHLS(url) {
+  if (typeof Hls === 'undefined') {
+    showError('hls.js library failed to load. Check your internet connection.');
+    return;
+  }
+
+  // Show loading spinner
+  showSpinner();
+
+  // Create video element
+  videoEl = document.createElement('video');
+  videoEl.setAttribute('crossorigin', 'anonymous');
+  videoEl.setAttribute('playsinline', '');
+  videoEl.setAttribute('controls', '');
+  videoEl.autoplay = true;
+  videoEl.muted = false;
+  videoEl.style.display = 'none'; // hide until playing
+
+  playerArea.appendChild(videoEl);
+
+  // Check native HLS support (Safari)
+  if (videoEl.canPlayType('application/vnd.apple.mpegurl')) {
+    videoEl.src = url;
+    videoEl.style.display = '';
+    hideSpinner();
+    videoEl.addEventListener('loadedmetadata', () => hideSpinner());
+    videoEl.addEventListener('error', () => {
+      hideSpinner();
+      showError('Stream failed to load. The token may have expired — try refreshing the data.');
+    });
+    return;
+  }
+
+  // Use hls.js
+  if (!Hls.isSupported()) {
+    hideSpinner();
+    showError('Your browser does not support HLS playback via hls.js.');
+    return;
+  }
+
+  hls = new Hls({
+    enableWorker: true,
+    lowLatencyMode: false,
+    backBufferLength: 90
+  });
+
+  hls.loadSource(url);
+  hls.attachMedia(videoEl);
+
+  hls.on(Hls.Events.MANIFEST_PARSED, () => {
+    hideSpinner();
+    videoEl.style.display = '';
+    videoEl.play().catch(() => {});
+  });
+
+  hls.on(Hls.Events.ERROR, (_event, data) => {
+    if (data.fatal) {
+      switch (data.type) {
+        case Hls.ErrorTypes.NETWORK_ERROR:
+          hideSpinner();
+          hls.destroy();
+          hls = null;
+          showError('Network error — stream unavailable. The token may have expired.');
+          break;
+        case Hls.ErrorTypes.MEDIA_ERROR:
+          hls.recoverMediaError();
+          break;
+        default:
+          hideSpinner();
+          hls.destroy();
+          hls = null;
+          showError('HLS playback error. Try another camera.');
+          break;
+      }
+    }
+  });
+}
+
+// ---- YouTube embed ----
+function playYouTube(url) {
+  showSpinner();
+  ytIframe = document.createElement('iframe');
+  ytIframe.src = url + '?autoplay=1&mute=0';
+  ytIframe.allow = 'autoplay; encrypted-media; picture-in-picture';
+  ytIframe.allowFullscreen = true;
+  ytIframe.style.display = 'none';
+  playerArea.appendChild(ytIframe);
+
+  ytIframe.addEventListener('load', () => {
+    hideSpinner();
+    ytIframe.style.display = '';
+  });
+
+  ytIframe.addEventListener('error', () => {
+    hideSpinner();
+    showError('YouTube embed failed to load.');
+  });
+}
+
+// ---- Destroy current player ----
+function destroyPlayer() {
+  hideSpinner();
+  hideError();
+  if (hls) {
+    hls.destroy();
+    hls = null;
+  }
+  if (videoEl) {
+    videoEl.pause();
+    videoEl.removeAttribute('src');
+    if (videoEl.parentNode) videoEl.parentNode.removeChild(videoEl);
+    videoEl = null;
+  }
+  if (ytIframe) {
+    if (ytIframe.parentNode) ytIframe.parentNode.removeChild(ytIframe);
+    ytIframe = null;
+  }
+}
+
+// ---- Spinner ----
+let spinnerEl = null;
+function showSpinner() {
+  hideSpinner();
+  spinnerEl = document.createElement('div');
+  spinnerEl.className = 'spinner-wrap';
+  spinnerEl.innerHTML = '<div class="spinner"></div>';
+  playerArea.appendChild(spinnerEl);
+}
+function hideSpinner() {
+  if (spinnerEl) {
+    spinnerEl.remove();
+    spinnerEl = null;
+  }
+}
+
+// ---- Error overlay ----
+let errorEl = null;
+function showError(msg) {
+  hideError();
+  errorEl = document.createElement('div');
+  errorEl.className = 'stream-error';
+  errorEl.innerHTML = `
+    <div class="err-icon">⚠️</div>
+    <div class="err-msg">${escHtml(msg)}</div>
+  `;
+  playerArea.appendChild(errorEl);
+}
+function hideError() {
+  if (errorEl) {
+    errorEl.remove();
+    errorEl = null;
+  }
+}
+
+// ---- Utility ----
+function escHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+function escAttr(s) {
+  return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ---- Event listeners ----
+searchInput.addEventListener('input', () => renderAll());
+typeFilter.addEventListener('change', () => renderAll());
+
+// Mobile toggle
+mobileToggle.addEventListener('click', () => {
+  sidebar.classList.toggle('open');
+});
+
+// Close sidebar when clicking a camera on mobile
+cameraList.addEventListener('click', (e) => {
+  const item = e.target.closest('.camera-item');
+  if (item && window.innerWidth <= 800) {
+    sidebar.classList.remove('open');
+  }
+});
+
+// Keyboard shortcut: Ctrl+F / Cmd+F to focus search
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+    e.preventDefault();
+    searchInput.focus();
+    searchInput.select();
+  }
+});
+
+// ---- Initialize ----
+loadData();
+</script>
+</body>
+</html>
