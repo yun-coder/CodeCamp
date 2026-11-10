@@ -126,3 +126,14 @@ rad.json
 *.bclicense
 *.flf
 TestResults.xml
+
+# Nested project repositories
+# 每个子项目各自保有独立 .git，根仓库只维护索引和文档；以下项目不入根仓库。
+/GEOSuite/
+/ai-guide/
+/content-publishing-platform/
+/cyber-xiaoya-live/
+/digital-human-koubo/
+/gstack/
+/rea-video/
+/xiaozhi-workday-platform/
