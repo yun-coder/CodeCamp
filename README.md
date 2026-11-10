@@ -3,7 +3,7 @@
 个人 AI 学习项目集合。这个仓库用于集中索引、保存和实验多个 AI、Agent、RAG、视频生成、知识管理及工具类项目，方便横向学习、对比技术栈和沉淀本地实践。
 
 > **最后更新：** 2026-11-10
-> **当前项目总数：** 28 个子项目（按根目录实际目录核验）
+> **当前项目总数：** 27 个子项目（按根目录实际目录核验）
 > **目录结构：** 扁平化根目录，按领域分类索引
 
 ---
@@ -43,7 +43,6 @@ CodeCamp/
 ├── local-deep-research/             # 本地深度研究助手
 ├── Python-100-Days/                 # Python 全栈 100 天教程
 ├── PythonCrawler/                   # Python 爬虫示例集合
-├── public-club/                     # CSV → GeoJSON 静态工具站（自有）
 ├── rea-video/                       # 视频逆向拆解与复刻方案
 ├── skills/                          # Matt Pocock 工程技能集
 ├── skyline-globe/                   # 全球实时摄像头图谱（自有）
@@ -108,7 +107,6 @@ CodeCamp/
 | [skyline-globe](skyline-globe/) | 全球 2141 路实时摄像头图谱：3D 地球/墨卡托切换、聚合点、HLS 代理与 YouTube 嵌入 | React, Vite, MapLibre |
 | [zz-toolbox](zz-toolbox/) | Electron 桌面工具箱：打印设计、条码二维码、组件库、画布演练场 | Electron, Vue 3, Vite |
 | [ai-guide](ai-guide/) | 鱼皮的 AI 知识库站点源码（VuePress），内容为 AI 工具与教程 | VuePress 1.x |
-| [public-club](public-club/) | GeoSuite 静态工具站：浏览器内把 CSV 转 GeoJSON，纯本地处理、无需后端 | 原生 JS, HTML/CSS |
 
 ---
 
@@ -131,7 +129,6 @@ CodeCamp/
 | file-viewer-main | 2026-11-10 已 `pnpm install`（51 个 workspace 包），`@file-viewer/core` 构建通过；源码快照缺少 `presets` 包，8 个 `-full` 包与 demo 的 `@file-viewer/preset-all` 已由 `workspace:` 改为 npm 上的 `^2.1.13` |
 | zz-toolbox | 2026-11-10 已 `npm install`（913 包，electron 二进制就位），`npm run build` 构建通过 |
 | ai-guide | 2026-11-10 已 `npm install`（1251 包）。VuePress 1.x 走 webpack 4，Node 24 下启动或构建需 `NODE_OPTIONS=--openssl-legacy-provider` |
-| public-club | 免安装，纯静态站：浏览器打开 `index.html` 即用；也可直接由 Cloudflare Pages 托管仓库根目录 |
 
 ### 已装但需注意
 
@@ -158,7 +155,7 @@ CodeCamp/
 - **移出**：`Easel` 已迁至 `D:\智茂\Easel`（本仓库不再索引，历史提交仍保留其文件）。
 - **删除**：`loop-engineering`、`RuView`、`WeKnora`、`handraw-style` 已从本目录移除。
 - **新增**：`cyber-xiaoya-live`、`digital-human-koubo`；此前未入索引的 `gstack`、`rea-video`、`content-publishing-platform`、`xiaozhi-workday-platform`、`ai-guide` 已补入。
-- **迁入**：`public-club`（GeoSuite CSV→GeoJSON 静态站）从 `D:\智茂\05_应用项目\public-club` 移入本目录；其自带 `.git`（远程 `yun-coder/public-club`），已加入 `.gitignore`。移入时仓库内还有未提交改动（`README.md`、`index.html` 修改，`legacy/` 未跟踪）。
+- **迁出**：`public-club`（GeoSuite CSV→GeoJSON 静态站）先于 16:30 从 `D:\智茂\05_应用项目` 移入本目录，随后由用户调整到 `D:\public-club`，不再属于本仓库索引范围。它的改动已在自有仓库 `yun-coder/public-club` 提交并推送（commit `8062a85`，新增标语区块 + 归档 legacy 页面）；`D:\智茂\public-club` 兼容链接已重指向新位置。
 - **记档**：`file-viewer-main/PATHS.md` 记录该快照相对上游的唯一有意偏离（`presets` 包缺失导致 9 处依赖由 `workspace:` 改为 npm `^2.1.13`）及还原方法。
 - **修正**：`GEOSuite` 早期描述为“地理空间数据处理”，实际是企业 SEO/GEO 工作台，已更正。
 - **安装依赖**：`file-viewer-main`（pnpm，51 个 workspace 包）、`zz-toolbox`（npm，913 包）、`ai-guide`（npm，1251 包）已装好并各自验证构建；三者锁文件已提交。
