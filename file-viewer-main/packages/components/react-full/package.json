@@ -60,7 +60,7 @@
     "react": ">=17 <20"
   },
   "dependencies": {
-    "@file-viewer/preset-all": "workspace:^2.1.13",
+    "@file-viewer/preset-all": "^2.1.13",
     "@file-viewer/react": "workspace:^2.1.13"
   },
   "devDependencies": {

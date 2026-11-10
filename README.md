@@ -126,6 +126,9 @@ CodeCamp/
 | cyber-xiaoya-live | `.venv`（Python 3.12 / uv）可运行；形象、音色、API Key 需按 README 自备 |
 | xiaozhi-workday-platform | 免安装，`python start.py` 起本地服务（127.0.0.1:28931） |
 | image-copy | 免安装，Chrome 开发者模式加载目录即可 |
+| file-viewer-main | 2026-11-10 已 `pnpm install`（51 个 workspace 包），`@file-viewer/core` 构建通过；源码快照缺少 `presets` 包，8 个 `-full` 包与 demo 的 `@file-viewer/preset-all` 已由 `workspace:` 改为 npm 上的 `^2.1.13` |
+| zz-toolbox | 2026-11-10 已 `npm install`（913 包，electron 二进制就位），`npm run build` 构建通过 |
+| ai-guide | 2026-11-10 已 `npm install`（1251 包）。VuePress 1.x 走 webpack 4，Node 24 下启动或构建需 `NODE_OPTIONS=--openssl-legacy-provider` |
 
 ### 已装但需注意
 
@@ -137,9 +140,6 @@ CodeCamp/
 
 | 项目 | 需要 |
 |---|---|
-| file-viewer-main | `pnpm install`；`artifacts/` 内有 v2.1.13 全套已发布 tgz，可当成品用 |
-| zz-toolbox | `npm install`（含 electron）；`dist/` 是上次构建产物 |
-| ai-guide | `npm install`；只看内容可直读 Markdown |
 | skills | 技能为 Markdown，直接可用；`package.json` 仅 changesets 开发依赖 |
 
 ### 需要外部环境
@@ -156,6 +156,7 @@ CodeCamp/
 - **删除**：`loop-engineering`、`RuView`、`WeKnora`、`handraw-style` 已从本目录移除。
 - **新增**：`cyber-xiaoya-live`、`digital-human-koubo`；此前未入索引的 `gstack`、`rea-video`、`content-publishing-platform`、`xiaozhi-workday-platform`、`ai-guide` 已补入。
 - **修正**：`GEOSuite` 早期描述为“地理空间数据处理”，实际是企业 SEO/GEO 工作台，已更正。
+- **安装依赖**：`file-viewer-main`（pnpm，51 个 workspace 包）、`zz-toolbox`（npm，913 包）、`ai-guide`（npm，1251 包）已装好并各自验证构建；三者锁文件已提交。
 - **路径修复**：`agents-learn`（解释器与可编辑安装）、`GEOSuite`（IDE 配置与文档中的 `D:\外贸\GEOSuite`）、`rea-video`（产物中记录的 `D:\rea-video` 路径）。
 - **说明**：`源码阅读笔记.md` 记录的是 2026-10-29 的阅读状态，其中已删除或移出的项目仅作历史参考。
 
